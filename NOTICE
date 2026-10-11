@@ -1,0 +1,75 @@
+dlms (a DLMS/COSEM client and its lower layers, DLMS over NB-IoT and LoRaWAN,
+IEC 62056-21, OBIS and the IS 15959 catalogue, in Go)
+Copyright 2026 Abhinav Gautam
+
+This module is licensed under the Apache License, Version 2.0 (LICENSE).
+
+The code was written for SigmaM2M, a oneM2M platform, from the published
+standards listed in PROVENANCE.md. It contains no code from other
+projects. The source files that come from SigmaM2M carry no per-file
+copyright header (the convention of the code they come from); the
+copyright line above covers them. Files added for this module carry
+"Copyright 2026 Abhinav Gautam" and "SPDX-License-Identifier: Apache-2.0".
+
+Specification data
+------------------
+
+obis/obis.yaml holds the value group tables and standard object codes of
+IEC 62056-6-1:2023 (OBIS), the COSEM object to interface class relations
+of IEC 62056-6-2:2023 clause 6, and the media 4 to 9 tables of EN
+13757-1:2021 clause 11, as facts: numbers, ranges, country names, class
+identifiers, and clause and table references. The names and labels are
+our own wording.
+
+is15959/ holds the object catalogue of IS 15959 Parts 1 (2011), 2 (2016,
+with Amendments 1 and 2 of 2017) and 3 (2017) as facts: OBIS codes,
+interface classes, attributes, units, access rights per association,
+capture objects, event codes, push setups and association parameters,
+with clause and table references. The names are our own wording.
+
+No text of these standards is reproduced, and none of them is
+redistributed. See PROVENANCE.md.
+
+Dependencies
+------------
+
+- gitlab.com/circutor-library/gosem v1.3.4: MIT License, "Copyright for
+  portions of project gosem are held by nyot, 2022. All other copyright
+  are held by Circutor, 2022." The packages cosem, hdlc, phy and wrapper
+  use its A-XDR types and APDU encoders (pkg/axdr, pkg/dlms). No gosem
+  code is copied into this module.
+- gopkg.in/yaml.v3 v3.0.1 (obis reads obis.yaml): MIT and Apache-2.0
+  (see its LICENSE and NOTICE).
+- github.com/cB-Sigma/schc (cosem uses its V.44 codec, schc/v44, for
+  compressed APDUs; lpwan its SCHC for LoRaWAN): Apache-2.0, Copyright
+  2026 Abhinav Gautam.
+- github.com/cB-Sigma/iotsec (the Store and CryptoPolicy seams):
+  Apache-2.0, Copyright 2026 Abhinav Gautam.
+- github.com/goburrow/serial v0.1.0 (local serial ports): MIT License,
+  Copyright (c) 2015 Quoc-Viet Nguyen.
+- Otherwise the Go standard library only.
+
+Test vectors
+------------
+
+Tests use the worked examples and test values of the standards as facts:
+the IEC 62056-46 annex A FCS table values and example frames, the ISO/IEC
+13239:2002 bit layouts, the IEC 62056-4-7 annex A.4 segmented WPDU, the
+IEC 62056-5-3:2023 annex E ciphered release, the IEC 62056-6-1:2023 and
+EN 13757-1:2021 examples and minimum objects, the IEC 62056-5-3:2023
+Table 30 and annex E ciphering examples and the DLMS UA Green Book's AES-GCM
+example. cosem's tests also use the RFC 3394 key wrap examples and NIST
+CAVS 11.0 ECDSA SigVer vectors (public domain, as shipped in the Go
+source tree). Keys in examples and tests are test values, not keys of
+any meter.
+
+Trademarks
+----------
+
+DLMS and COSEM are names of the DLMS User Association; Gurux is a name of
+Gurux Ltd. IEC 62056 is published by the International Electrotechnical
+Commission, EN 13757 by CEN, and IS 15959 and IS 16444 by the Bureau of
+Indian Standards. These names are used only to say which protocols and
+standards this module implements. This project is not affiliated with,
+certified by, sponsored or endorsed by any of these bodies or companies,
+and makes no claim of conformance.

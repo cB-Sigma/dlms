@@ -1,0 +1,1518 @@
+# OBIS (IEC 62056-6-1:2023, Edition 4.0, 2023-12; EN IEC 62056-6-1:2024 is
+# the same text, endorsed without modification) as data: the value group
+# tables, the reserved, manufacturer, utility, consortia and country ranges,
+# and the standard object codes of the abstract and electricity tables.
+# Transcribed as facts (numbers, ranges, country names) from a licensed copy
+# with clause and table references,
+# with the COSEM objects and interface classes (ic) of IEC 62056-6-2:2023
+# clause 6 (rows with t "6-2 <clause>").
+# Every name and label is our own short wording, not the standard's: names
+# are the camel-case point names SigmaM2M derives, labels are a few words
+# for a person reading a description. Source defects: F-262 to F-264, F-266 to F-268
+# (SigmaM2M finding numbers; see PROVENANCE.md).
+#
+# Value sets: "3", "0-9", "1,4-9,15", "*" (any). An object row's e or f
+# left out means the group is not used (255). f: bill means a billing
+# period code (0-99, 101-126) or 255 (5.6.2, 7.4.1, A.3).
+# Name templates: {e} the value of E, {e+N} / {e-N} E shifted, {E} empty
+# when E is 0 and "E<e>" otherwise.
+source: "IEC 62056-6-1:2023"
+
+# 5.1 Table 3: media.
+a:
+  - {v: "0", key: abstract, label: "abstract objects"}
+  - {v: "1", key: electricity, label: "electricity"}
+  - {v: "4", key: heatCostAllocator, label: "heat cost allocator"}
+  - {v: "5", key: cooling, label: "thermal energy, cooling"}   # EN 13757-1:2021 Table 12
+  - {v: "6", key: heat, label: "thermal energy, heat"}
+  - {v: "7", key: gas, label: "gas"}
+  - {v: "8", key: coldWater, label: "cold water"}
+  - {v: "9", key: hotWater, label: "hot water"}
+  - {v: "15", key: otherMedia, label: "other media"}
+
+# 5.2 Table 4: channel.
+b:
+  - {v: "0", key: none, label: "no channel"}
+  - {v: "1-64", key: channel, label: "channel"}
+  - {v: "65-127", key: utility, label: "utility specific"}
+  - {v: "128-199", key: manufacturer, label: "manufacturer specific"}
+
+# 4.2: manufacturer specific ranges per group (any one makes the whole code
+# manufacturer specific); Table 2 row 1 applies them for A = 0, 1, 4-9, 15.
+manufacturer:
+  b: "128-199"
+  c: "128-199,240"
+  d: "128-254"
+  e: "128-254"
+  f: "128-254"
+# Table 2 rows 2 and 3 (and Tables 8, 20): C = 96, D = 50-99, B = 0-64.
+manufacturerGeneral: {a: "0,1,4-9,15", b: "0-64", c: "96", d: "50-99"}
+# Table 2 row 4 and 5.2: B = 65-127.
+utility: {a: "0,1,4-9,15", b: "65-127"}
+# Table 2 rows 5 and 6, 5.4.2 Table 6, 5.4.3 Table 7: C = 93 and 94, D from
+# the tables, E and F defined by the consortium or country.
+consortia: {a: "0,1,4-9,15", b: "0-64", c: "93"}
+country: {a: "0,1,4-9,15", b: "0-64", c: "94"}
+
+# 5.4.2 Table 6.
+consortiaD:
+  - {d: 1, name: "STS Association"}
+
+# 5.4.3 Table 7 (D; the country calling code where the table gives one).
+countryD:
+  - {d: 0, name: Finland}
+  - {d: 1, name: USA}
+  - {d: 2, name: Canada}
+  - {d: 3, name: Serbia}
+  - {d: 7, name: Russia}
+  - {d: 10, name: Czech Republic}
+  - {d: 11, name: Bulgaria}
+  - {d: 12, name: Croatia}
+  - {d: 13, name: Ireland}
+  - {d: 14, name: Israel}
+  - {d: 15, name: Ukraine}
+  - {d: 16, name: Yugoslavia}
+  - {d: 17, name: Qatar}
+  - {d: 20, name: Egypt}
+  - {d: 22, name: Morocco}
+  - {d: 23, name: Algeria}
+  - {d: 24, name: Nigeria}
+  - {d: 25, name: Ivory Coast}
+  - {d: 26, name: Tunisia}
+  - {d: 27, name: South Africa}
+  - {d: 30, name: Greece}
+  - {d: 31, name: Netherlands}
+  - {d: 32, name: Belgium}
+  - {d: 33, name: France}
+  - {d: 34, name: Spain}
+  - {d: 35, name: Portugal}
+  - {d: 36, name: Hungary}
+  - {d: 37, name: Lithuania}
+  - {d: 38, name: Slovenia}
+  - {d: 39, name: Italy}
+  - {d: 40, name: Romania}
+  - {d: 41, name: Switzerland}
+  - {d: 42, name: Slovakia}
+  - {d: 43, name: Austria}
+  - {d: 44, name: United Kingdom}
+  - {d: 45, name: Denmark}
+  - {d: 46, name: Sweden}
+  - {d: 47, name: Norway}
+  - {d: 48, name: Poland}
+  - {d: 49, name: Germany}
+  - {d: 51, name: Peru}
+  - {d: 52, name: South Korea}
+  - {d: 53, name: Cuba}
+  - {d: 54, name: Argentina}
+  - {d: 55, name: Brazil}
+  - {d: 56, name: Chile}
+  - {d: 57, name: Colombia}
+  - {d: 58, name: Venezuela}
+  - {d: 60, name: Malaysia}
+  - {d: 61, name: Australia}
+  - {d: 62, name: Indonesia}
+  - {d: 63, name: Philippines}
+  - {d: 64, name: New Zealand}
+  - {d: 65, name: Singapore}
+  - {d: 66, name: Thailand}
+  - {d: 71, name: Latvia}
+  - {d: 73, name: Moldova}
+  - {d: 75, name: Belarus}
+  - {d: 81, name: Japan}
+  - {d: 82, name: Mexico}
+  - {d: 85, name: Hong Kong}
+  - {d: 86, name: China}
+  - {d: 87, name: Bosnia and Herzegovina}
+  - {d: 90, name: Turkey}
+  - {d: 91, name: India}
+  - {d: 92, name: Pakistan}
+  - {d: 96, name: Saudi Arabia}
+  - {d: 97, name: United Arab Emirates}
+  - {d: 98, name: Iran}
+
+# 5.3.2 Table 5: C for A = 0.
+abstractC:
+  - {v: "0-89", key: context, label: "COSEM context object (IEC 62056-6-2 6.2)"}
+  - {v: "93", key: consortia, label: "consortia specific"}
+  - {v: "94", key: country, label: "country specific"}
+  - {v: "96", key: general, label: "general and service entry"}
+  - {v: "97", key: error, label: "error register"}
+  - {v: "98", key: list, label: "list"}
+  - {v: "99", key: profile, label: "data profile"}
+  - {v: "127", key: inactive, label: "inactive object"}
+  - {v: "128-199,240", key: manufacturer, label: "manufacturer specific"}
+
+# 7.1 Table 13: C for A = 1. c lists the codes for the sum of phases and,
+# where the table has them, L1, L2, L3. q names the quantity, i its time
+# integral (energy) when the table's D takes one; label is ours.
+electricityC:
+  - {c: [1, 21, 41, 61], q: activePowerImport, i: activeEnergyImport, label: "active power import (QI+QIV)"}
+  - {c: [2, 22, 42, 62], q: activePowerExport, i: activeEnergyExport, label: "active power export (QII+QIII)"}
+  - {c: [3, 23, 43, 63], q: reactivePowerImport, i: reactiveEnergyImport, label: "reactive power import (QI+QII)"}
+  - {c: [4, 24, 44, 64], q: reactivePowerExport, i: reactiveEnergyExport, label: "reactive power export (QIII+QIV)"}
+  - {c: [5, 25, 45, 65], q: reactivePowerQ1, i: reactiveEnergyQ1, label: "reactive power QI"}
+  - {c: [6, 26, 46, 66], q: reactivePowerQ2, i: reactiveEnergyQ2, label: "reactive power QII"}
+  - {c: [7, 27, 47, 67], q: reactivePowerQ3, i: reactiveEnergyQ3, label: "reactive power QIII"}
+  - {c: [8, 28, 48, 68], q: reactivePowerQ4, i: reactiveEnergyQ4, label: "reactive power QIV"}
+  - {c: [9, 29, 49, 69], q: apparentPowerImport, i: apparentEnergyImport, label: "apparent power import (QI+QIV)"}
+  - {c: [10, 30, 50, 70], q: apparentPowerExport, i: apparentEnergyExport, label: "apparent power export (QII+QIII)"}
+  - {c: [11, 31, 51, 71], q: current, label: "current (C 11: any phase)"}
+  - {c: [12, 32, 52, 72], q: voltage, label: "voltage (C 12: any phase)"}
+  - {c: [13, 33, 53, 73], q: powerFactor, label: "power factor"}
+  - {c: [14, 34, 54, 74], q: frequency, label: "supply frequency"}
+  - {c: [15, 35, 55, 75], q: activePowerAbsolute, i: activeEnergyAbsolute, label: "active power, sum of magnitudes"}
+  - {c: [16, 36, 56, 76], q: activePowerNet, i: activeEnergyNet, label: "active power, import less export"}
+  - {c: [17, 37, 57, 77], q: activePowerQ1, i: activeEnergyQ1, label: "active power QI"}
+  - {c: [18, 38, 58, 78], q: activePowerQ2, i: activeEnergyQ2, label: "active power QII"}
+  - {c: [19, 39, 59, 79], q: activePowerQ3, i: activeEnergyQ3, label: "active power QIII"}
+  - {c: [20, 40, 60, 80], q: activePowerQ4, i: activeEnergyQ4, label: "active power QIV"}
+  - {c: [81], q: angle, label: "phase angle", special: angle}
+  - {c: [82], q: unitless, label: "unitless quantity (pulses, pieces)"}
+  - {c: [83], q: lossPower, i: losses, label: "transformer and line losses", special: losses}
+  - {c: [84, 85, 86, 87], q: powerFactorExport, label: "power factor, export"}
+  - {c: [88], q: ampereSquared, i: ampereSquaredHours, label: "ampere-squared hours (all quadrants)"}
+  - {c: [89], q: voltSquared, i: voltSquaredHours, label: "volt-squared hours (all quadrants)"}
+  - {c: [90], q: currentSum, label: "sum of phase current magnitudes"}
+  - {c: [91], q: neutralCurrent, label: "neutral current"}
+  - {c: [92], q: neutralVoltage, label: "neutral voltage"}
+  - {c: [100, 101, 102, 103], q: reactivePowerInductive, i: reactiveEnergyInductive, label: "reactive power inductive (QI+QIII)"}
+  - {c: [104, 105, 106, 107], q: reactivePowerCapacitive, i: reactiveEnergyCapacitive, label: "reactive power capacitive (QII+QIV)"}
+  - {c: [124], q: voltageL1L2, label: "line voltage L1-L2"}
+  - {c: [125], q: voltageL2L3, label: "line voltage L2-L3"}
+  - {c: [126], q: voltageL3L1, label: "line voltage L3-L1"}
+# Table 13, other rows (C that are not quantities).
+electricityOtherC:
+  - {v: "0", key: general, label: "general purpose"}
+  - {v: "93", key: consortia, label: "consortia specific"}
+  - {v: "94", key: country, label: "country specific"}
+  - {v: "96", key: general, label: "general and service entry"}
+  - {v: "97", key: error, label: "error register"}
+  - {v: "98", key: list, label: "list"}
+  - {v: "99", key: profile, label: "data profile"}
+  - {v: "128-199,240", key: manufacturer, label: "manufacturer specific"}
+
+# 7.2.1 Table 14: D for A = 1 and a quantity C. s is the name suffix;
+# integral: the value is a time integral (energy for a power); bill: F
+# may name a billing period (7.4.1); threshold: F numbers the threshold
+# (7.4.2, and IEC 62056-6-2:2023 Table 55 for the time thresholds 43-45,
+# F-266); ic: the interface classes of IEC 62056-6-2:2023 6.3.1 Table 53,
+# 6.3.9 Table 55 and 6.3.10 Table 56 (21: a register monitor may carry the
+# code of the threshold or demand value it monitors).
+electricityD:
+  - {d: 0, s: BillingAvg, bill: true, ic: "3,4", label: "billing period average"}
+  - {d: 1, s: CumMin1, bill: true, ic: "3,4", label: "cumulative minimum 1"}
+  - {d: 2, s: CumMax1, bill: true, ic: "3,4", label: "cumulative maximum 1"}
+  - {d: 3, s: Min1, bill: true, ic: "3,4,7", label: "minimum 1"}
+  - {d: 4, s: Avg1, ic: "5,3,21", label: "current average 1"}
+  - {d: 5, s: LastAvg1, ic: "3,5,21", label: "last average 1"}
+  - {d: 6, s: Max1, bill: true, ic: "3,4,7", label: "maximum 1"}
+  - {d: 7, s: "", ic: "3", label: "instantaneous value"}
+  - {d: 8, s: "", integral: true, bill: true, ic: "3,4", label: "time integral 1 (from the origin)"}
+  - {d: 9, s: Period, integral: true, bill: true, ic: "3,4", label: "time integral 2 (current billing period)"}
+  - {d: 10, s: OverThreshold, integral: true, bill: true, ic: "3,4", label: "time integral 3 (above a threshold)"}
+  - {d: 11, s: CumMin2, bill: true, ic: "3,4", label: "cumulative minimum 2"}
+  - {d: 12, s: CumMax2, bill: true, ic: "3,4", label: "cumulative maximum 2"}
+  - {d: 13, s: Min2, bill: true, ic: "3,4,7", label: "minimum 2"}
+  - {d: 14, s: Avg2, ic: "5,3,21", label: "current average 2"}
+  - {d: 15, s: LastAvg2, ic: "3,5,21", label: "last average 2"}
+  - {d: 16, s: Max2, bill: true, ic: "3,4,7", label: "maximum 2"}
+  - {d: 17, s: ToRecording1, integral: true, ic: "3,4", label: "time integral 7 (origin to last recording period 1)"}
+  - {d: 18, s: ToRecording2, integral: true, ic: "3,4", label: "time integral 8 (origin to last recording period 2)"}
+  - {d: 19, s: PeriodToRecording1, integral: true, ic: "3,4", label: "time integral 9 (billing period to last recording period 1)"}
+  - {d: 20, s: PeriodToRecording2, integral: true, ic: "3,4", label: "time integral 10 (billing period to last recording period 2)"}
+  - {d: 21, s: CumMin3, bill: true, ic: "3,4", label: "cumulative minimum 3"}
+  - {d: 22, s: CumMax3, bill: true, ic: "3,4", label: "cumulative maximum 3"}
+  - {d: 23, s: Min3, bill: true, ic: "3,4,7", label: "minimum 3"}
+  - {d: 24, s: Avg3, ic: "5,3,21", label: "current average 3"}
+  - {d: 25, s: LastAvg3, ic: "3,5,21", label: "last average 3"}
+  - {d: 26, s: Max3, bill: true, ic: "3,4,7", label: "maximum 3"}
+  - {d: 27, s: Avg, label: "current average 5 (recording interval 1)"}
+  - {d: 28, s: AvgRecording2, label: "current average 6 (recording interval 2)"}
+  - {d: 29, s: Block, integral: true, ic: "3,4", label: "time integral 5 (current recording interval 1)"}
+  - {d: 30, s: BlockRecording2, integral: true, ic: "3,4", label: "time integral 6 (current recording interval 2)"}
+  - {d: 31, s: UnderLimitThreshold, threshold: true, ic: "1,3,4,21", label: "under limit threshold"}
+  - {d: 32, s: UnderLimitCount, threshold: true, ic: "1,3,4", label: "under limit occurrences"}
+  - {d: 33, s: UnderLimitDuration, threshold: true, ic: "1,3,4", label: "under limit duration"}
+  - {d: 34, s: UnderLimitMagnitude, threshold: true, ic: "1,3,4", label: "under limit magnitude"}
+  - {d: 35, s: OverLimitThreshold, threshold: true, ic: "1,3,4,21", label: "over limit threshold"}
+  - {d: 36, s: OverLimitCount, threshold: true, ic: "1,3,4", label: "over limit occurrences"}
+  - {d: 37, s: OverLimitDuration, threshold: true, ic: "1,3,4", label: "over limit duration"}
+  - {d: 38, s: OverLimitMagnitude, threshold: true, ic: "1,3,4", label: "over limit magnitude"}
+  - {d: 39, s: MissingThreshold, threshold: true, ic: "1,3,4,21", label: "missing threshold"}
+  - {d: 40, s: MissingCount, threshold: true, ic: "1,3,4", label: "missing occurrences"}
+  - {d: 41, s: MissingDuration, threshold: true, ic: "1,3,4", label: "missing duration"}
+  - {d: 42, s: MissingMagnitude, threshold: true, ic: "1,3,4", label: "missing magnitude"}
+  - {d: 43, s: UnderLimitTimeThreshold, threshold: true, ic: "1,3,4", label: "time threshold, under limit"}
+  - {d: 44, s: OverLimitTimeThreshold, threshold: true, ic: "1,3,4", label: "time threshold, over limit"}
+  - {d: 45, s: MissingTimeThreshold, threshold: true, ic: "1,3,4", label: "time threshold, missing"}
+  - {d: 46, s: Contracted, ic: "3,4", label: "contracted value"}
+  - {d: 49, s: AvgInterval1, label: "average for recording interval 1"}
+  - {d: 50, s: AvgInterval2, label: "average for recording interval 2"}
+  - {d: 51, s: MinInterval1, label: "minimum for recording interval 1"}
+  - {d: 52, s: MinInterval2, label: "minimum for recording interval 2"}
+  - {d: 53, s: MaxInterval1, label: "maximum for recording interval 1"}
+  - {d: 54, s: MaxInterval2, label: "maximum for recording interval 2"}
+  - {d: 55, s: TestAvg, label: "test average"}
+  - {d: 56, s: HarmonicsAvg, label: "current average 4 (harmonics)"}
+  - {d: 58, s: Test, integral: true, ic: "3,4", label: "time integral 4 (test)"}
+
+# 7.3.2 Table 15: E tariff rates 1-63 (0 total); the default use of E.
+tariffE: "1-63"
+
+# 7.3.3 Table 16: E harmonics, for these C and D.
+harmonics:
+  rules:
+    - {c: "11,12,15,31,32,35,51,52,55,71,72,75,90,91,92", d: "7,24,56"}
+    # IEC 62056-6-2:2023 Table 55 (thresholds) and Table 56 (register
+    # monitors) use the harmonic E with more D codes and C 100-107 (F-266).
+    - {c: "11,12,15,31,32,35,51,52,55,71,72,75,90,91,92", d: "4,5,14,15,25,31-45"}
+    - {c: "100-107", d: "4,5,14,15,24,25"}
+  e:
+    - {v: "1-120", s: "H{e}", label: "harmonic"}
+    - {v: "124", s: THD, label: "total harmonic distortion"}
+    - {v: "125", s: TDD, label: "total demand distortion"}
+    - {v: "126", s: AllHarmonics, label: "all harmonics"}
+    - {v: "127", s: HarmonicsToNominal, label: "all harmonics to nominal"}
+
+# 7.3.4 Table 17: E = 10 x reference + measured, both from this list (C 81).
+angleIndex:
+  - {i: 0, s: U1}
+  - {i: 1, s: U2}
+  - {i: 2, s: U3}
+  - {i: 4, s: I1}
+  - {i: 5, s: I2}
+  - {i: 6, s: I3}
+  - {i: 7, s: I0}
+
+# 7.3.5 Table 18: E for C = 83 (no tariffs, no manufacturer range). The L2
+# block (51-70) and L3 block (71-90) repeat 31-50 shifted by 20 and 40.
+lossesE:
+  - {e: 1, s: ActiveLineImport, label: "active line losses import"}
+  - {e: 2, s: ActiveLineExport, label: "active line losses export"}
+  - {e: 3, s: ActiveLine, label: "active line losses"}
+  - {e: 4, s: ActiveTransformerImport, label: "active transformer losses import"}
+  - {e: 5, s: ActiveTransformerExport, label: "active transformer losses export"}
+  - {e: 6, s: ActiveTransformer, label: "active transformer losses"}
+  - {e: 7, s: ActiveImport, label: "active losses import"}
+  - {e: 8, s: ActiveExport, label: "active losses export"}
+  - {e: 9, s: Active, label: "active losses"}
+  - {e: 10, s: ReactiveLineImport, label: "reactive line losses import"}
+  - {e: 11, s: ReactiveLineExport, label: "reactive line losses export"}
+  - {e: 12, s: ReactiveLine, label: "reactive line losses"}
+  - {e: 13, s: ReactiveTransformerImport, label: "reactive transformer losses import"}
+  - {e: 14, s: ReactiveTransformerExport, label: "reactive transformer losses export"}
+  - {e: 15, s: ReactiveTransformer, label: "reactive transformer losses"}
+  - {e: 16, s: ReactiveImport, label: "reactive losses import"}
+  - {e: 17, s: ReactiveExport, label: "reactive losses export"}
+  - {e: 18, s: Reactive, label: "reactive losses"}
+  - {e: 19, s: TransformerNormalised, label: "transformer losses, normalised iron resistance"}
+  - {e: 20, s: LineNormalised, label: "line losses, normalised copper resistance"}
+  - {e: 21, s: CompensatedActiveGrossImport, label: "compensated active gross import"}
+  - {e: 22, s: CompensatedActiveNetImport, label: "compensated active net import"}
+  - {e: 23, s: CompensatedActiveGrossExport, label: "compensated active gross export"}
+  - {e: 24, s: CompensatedActiveNetExport, label: "compensated active net export"}
+  - {e: 25, s: CompensatedReactiveGrossImport, label: "compensated reactive gross import"}
+  - {e: 26, s: CompensatedReactiveNetImport, label: "compensated reactive net import"}
+  - {e: 27, s: CompensatedReactiveGrossExport, label: "compensated reactive gross export"}
+  - {e: 28, s: CompensatedReactiveNetExport, label: "compensated reactive net export"}
+  - {e: 31, s: ActiveLineImportL1, label: "L1 active line losses import"}
+  - {e: 32, s: ActiveLineExportL1, label: "L1 active line losses export"}
+  - {e: 33, s: ActiveLineL1, label: "L1 active line losses"}
+  - {e: 34, s: ActiveTransformerImportL1, label: "L1 active transformer losses import"}
+  - {e: 35, s: ActiveTransformerExportL1, label: "L1 active transformer losses export"}
+  - {e: 36, s: ActiveTransformerL1, label: "L1 active transformer losses"}
+  - {e: 37, s: ActiveImportL1, label: "L1 active losses import"}
+  - {e: 38, s: ActiveExportL1, label: "L1 active losses export"}
+  - {e: 39, s: ActiveL1, label: "L1 active losses"}
+  - {e: 40, s: ReactiveLineImportL1, label: "L1 reactive line losses import"}
+  - {e: 41, s: ReactiveLineExportL1, label: "L1 reactive line losses export"}
+  - {e: 42, s: ReactiveLineL1, label: "L1 reactive line losses"}
+  - {e: 43, s: ReactiveTransformerImportL1, label: "L1 reactive transformer losses import"}
+  - {e: 44, s: ReactiveTransformerExportL1, label: "L1 reactive transformer losses export"}
+  - {e: 45, s: ReactiveTransformerL1, label: "L1 reactive transformer losses"}
+  - {e: 46, s: ReactiveImportL1, label: "L1 reactive losses import"}
+  - {e: 47, s: ReactiveExportL1, label: "L1 reactive losses export"}
+  - {e: 48, s: ReactiveL1, label: "L1 reactive losses"}
+  - {e: 49, s: AmpereSquaredHoursL1, label: "L1 ampere-squared hours"}
+  - {e: 50, s: VoltSquaredHoursL1, label: "L1 volt-squared hours"}
+
+# 7.3.6 Table 19: E = 10 x depth class + duration class, for these C with
+# D = 32.
+dips:
+  c: "12,32,52,72,124-126"
+  d: 32
+  depth: ["10-15 %", "15-30 %", "30-60 %", "60-90 %", "90-100 %"]
+  duration: ["0.01-0.1 s", "0.1-0.5 s", "0.5-1 s", "1-3 s", "3-20 s", "20-60 s"]
+
+# 8.2 Table 25: C for A = 15 (D, E and F are left for later by 8.3-8.5).
+otherMediaC:
+  - {v: "0", key: general, label: "general purpose"}
+  - {v: "1-10", key: solar, label: "solar"}
+  - {v: "11-20", key: wind, label: "wind"}
+
+# Standard object codes: 6.1 Table 8, 6.2 Table 9, 6.3 Table 10, 6.4
+# Table 11, 6.5 Table 12 (A = 0); 7.5.1 Table 20, 7.5.2 Table 21, 7.5.3
+# Table 22, 7.5.4 Table 23, 7.5.5 Table 24 (A = 1).
+objects:
+  # Table 8: billing period entries (schemes 1 and 2), program entries, time.
+  - {t: "8", a: "0", b: "*", c: "0", d: "1", e: "0", f: bill, name: billingPeriodCounter}
+  - {t: "8", a: "0", b: "*", c: "0", d: "1", e: "1", name: availableBillingPeriods}
+  - {t: "8", a: "0", b: "*", c: "0", d: "1", e: "2", f: bill, name: billingPeriodTime}
+  - {t: "8", a: "0", b: "*", c: "0", d: "1", e: "3", f: bill, name: billingPeriodCounter2}
+  - {t: "8", a: "0", b: "*", c: "0", d: "1", e: "4", name: availableBillingPeriods2}
+  - {t: "8", a: "0", b: "*", c: "0", d: "1", e: "5", f: bill, name: billingPeriodTime2}
+  - {t: "8", a: "0", b: "*", c: "0", d: "2", e: "0", name: activeFirmwareId}
+  - {t: "8", a: "0", b: "*", c: "0", d: "2", e: "1", name: activeFirmwareVersion}
+  - {t: "8", a: "0", b: "*", c: "0", d: "2", e: "8", name: activeFirmwareSignature}
+  - {t: "8", a: "0", b: "*", c: "0", d: "9", e: "1", name: localTime}
+  - {t: "8", a: "0", b: "*", c: "0", d: "9", e: "2", name: localDate}
+  # Table 8: device IDs.
+  - {t: "8", a: "0", b: "*", c: "96", d: "1", e: "255", name: completeDeviceId}
+  - {t: "8", a: "0", b: "*", c: "96", d: "1", e: "0-9", name: "deviceId{e+1}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "1", e: "10", name: meteringPointId}
+  # Table 8: parameter changes, calibration and access.
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "0", name: configChanges}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "1", name: lastConfigChangeTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "2", name: lastTimeSwitchChangeTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "3", name: lastRippleControlChangeTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "4", name: securitySwitchStatus}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "5", name: lastCalibrationTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "6", name: nextConfigChangeTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "7", name: passiveCalendarActivationTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "10", name: protectedConfigChanges}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "11", name: lastProtectedConfigChangeTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "12", name: lastClockSetTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "2", e: "13", name: lastFirmwareActivationTime}
+  # Table 8: input/output and internal control signals, operating status.
+  - {t: "8", a: "0", b: "*", c: "96", d: "3", e: "0", name: ioControlStatus}
+  - {t: "8", a: "0", b: "*", c: "96", d: "3", e: "1", name: inputControlStatus}
+  - {t: "8", a: "0", b: "*", c: "96", d: "3", e: "2", name: outputControlStatus}
+  - {t: "8", a: "0", b: "*", c: "96", d: "3", e: "3-4", name: "ioControlStatus{e}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "3", e: "10", name: disconnectControl}
+  - {t: "8", a: "0", b: "*", c: "96", d: "3", e: "20-29", name: "arbitrator{e-19}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "4", e: "0", name: internalControlStatus}
+  - {t: "8", a: "0", b: "*", c: "96", d: "4", e: "1-4", name: "internalControlStatus{e}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "5", e: "0", name: internalOperatingStatus}
+  - {t: "8", a: "0", b: "*", c: "96", d: "5", e: "1-4", name: "internalOperatingStatus{e}"}
+  # Table 8: battery entries.
+  - {t: "8", a: "0", b: "*", c: "96", d: "6", e: "0", name: batteryUseTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "6", e: "1", name: batteryCharge}
+  - {t: "8", a: "0", b: "*", c: "96", d: "6", e: "2", name: nextBatteryChange}
+  - {t: "8", a: "0", b: "*", c: "96", d: "6", e: "3", name: batteryVoltage}
+  - {t: "8", a: "0", b: "*", c: "96", d: "6", e: "4", name: batteryInitialCapacity}
+  - {t: "8", a: "0", b: "*", c: "96", d: "6", e: "5", name: batteryInstalledTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "6", e: "6", name: batteryRemainingTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "6", e: "10", name: auxSupplyUseTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "6", e: "11", name: auxVoltage}
+  # Table 8: power failure monitoring (Table 8 gives B 0; IEC 62056-6-2
+  # 6.2.51 any channel, F-267).
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "0", name: powerFailures}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "1", name: powerFailuresL1}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "2", name: powerFailuresL2}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "3", name: powerFailuresL3}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "21", name: powerFailuresAnyPhase}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "4", name: auxSupplyFailures}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "5", name: longPowerFailures}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "6", name: longPowerFailuresL1}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "7", name: longPowerFailuresL2}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "8", name: longPowerFailuresL3}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "9", name: longPowerFailuresAnyPhase}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "10", name: powerFailureTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "11", name: powerFailureTimeL1}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "12", name: powerFailureTimeL2}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "13", name: powerFailureTimeL3}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "14", name: powerFailureTimeAnyPhase}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "15", name: longPowerFailureDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "16", name: longPowerFailureDurationL1}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "17", name: longPowerFailureDurationL2}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "18", name: longPowerFailureDurationL3}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "19", name: longPowerFailureDurationAnyPhase}
+  - {t: "8", a: "0", b: "*", c: "96", d: "7", e: "20", name: longPowerFailureThreshold}
+  # Table 8: operating time, environment, status registers, event codes,
+  # communication port, consumer messages, tariffs, counters.
+  - {t: "8", a: "0", b: "*", c: "96", d: "8", e: "0", name: operatingTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "8", e: "1-63", name: "operatingTimeT{e}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "9", e: "0", name: ambientTemperature}
+  - {t: "8", a: "0", b: "*", c: "96", d: "9", e: "1", name: ambientPressure}
+  - {t: "8", a: "0", b: "*", c: "96", d: "9", e: "2", name: relativeHumidity}
+  - {t: "8", a: "0", b: "*", c: "96", d: "10", e: "1-10", name: "statusRegister{e}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "11", e: "0-99", name: "eventCode{e+1}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "12", e: "1", name: connections}
+  - {t: "8", a: "0", b: "*", c: "96", d: "12", e: "4", name: commPortParameter1}
+  - {t: "8", a: "0", b: "*", c: "96", d: "12", e: "5", name: gsmFieldStrength}
+  - {t: "8", a: "0", b: "*", c: "96", d: "12", e: "6", name: commAddress}
+  - {t: "8", a: "0", b: "*", c: "96", d: "13", e: "0", name: consumerMessagePort}
+  - {t: "8", a: "0", b: "*", c: "96", d: "13", e: "1", name: consumerMessageDisplay}
+  - {t: "8", a: "0", b: "*", c: "96", d: "14", e: "0-15", name: "activeTariff{e+1}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "15", e: "0-99", name: "eventCounter{e+1}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "16", e: "0-9", name: "profileEntrySignature{e+1}"}
+  - {t: "8", a: "0", b: "*", c: "96", d: "17", e: "0-127", name: "profileEntryCounter{e+1}"}
+  # Table 8: meter tamper events (counter, time, duration, total duration).
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "0", name: meterOpenCount}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "1", name: meterOpenTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "2", name: meterOpenDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "3", name: meterOpenTotalDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "5", name: terminalCoverOpenCount}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "6", name: terminalCoverOpenTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "7", name: terminalCoverOpenDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "8", name: terminalCoverOpenTotalDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "10", name: tiltCount}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "11", name: tiltTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "12", name: tiltDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "13", name: tiltTotalDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "15", name: magneticFieldCount}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "16", name: magneticFieldTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "17", name: magneticFieldDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "18", name: magneticFieldTotalDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "20", name: supplySwitchTamperCount}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "21", name: supplySwitchTamperTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "22", name: supplySwitchTamperDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "23", name: supplySwitchTamperTotalDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "25", name: metrologyTamperCount}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "26", name: metrologyTamperTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "27", name: metrologyTamperDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "28", name: metrologyTamperTotalDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "30", name: commTamperCount}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "31", name: commTamperTime}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "32", name: commTamperDuration}
+  - {t: "8", a: "0", b: "*", c: "96", d: "20", e: "33", name: commTamperTotalDuration}
+  # Table 9: error, alarm registers, filters and descriptors.
+  - {t: "9", a: "0", b: "*", c: "97", d: "97", e: "0-9", name: "errorRegister{e+1}"}
+  - {t: "9", a: "0", b: "*", c: "97", d: "98", e: "0-9", name: "alarmRegister{e+1}"}
+  - {t: "9", a: "0", b: "*", c: "97", d: "98", e: "10-19", name: "alarmFilter{e-9}"}
+  - {t: "9", a: "0", b: "*", c: "97", d: "98", e: "20-29", name: "alarmDescriptor{e-19}"}
+  # Tables 10 and 11: lists and register tables (F 255 is a wildcard, A.3).
+  - {t: "10", a: "0", b: "*", c: "98", d: "1", e: "*", name: "billingPeriodData{E}"}
+  - {t: "10", a: "0", b: "*", c: "98", d: "2", e: "*", name: "billingPeriodData2{E}"}
+  - {t: "11", a: "0", b: "*", c: "98", d: "10", e: "*", name: "registerTable{E}"}
+  # Table 12: data profiles.
+  - {t: "12", a: "0", b: "*", c: "99", d: "1", e: "*", name: "loadProfile1{E}"}
+  - {t: "12", a: "0", b: "*", c: "99", d: "2", e: "*", name: "loadProfile2{E}"}
+  - {t: "12", a: "0", b: "*", c: "99", d: "3", e: "0", name: testLoadProfile}
+  - {t: "12", a: "0", b: "*", c: "99", d: "12", e: "*", name: "connectionProfile{E}"}
+  - {t: "12", a: "0", b: "*", c: "99", d: "13", e: "*", name: "gsmDiagnosticProfile{E}"}
+  - {t: "12", a: "0", b: "*", c: "99", d: "14", e: "*", name: "chargeCollectionHistory{E}"}
+  - {t: "12", a: "0", b: "*", c: "99", d: "15", e: "*", name: "tokenCreditHistory{E}"}
+  - {t: "12", a: "0", b: "*", c: "99", d: "16", e: "*", name: "parameterMonitorLog{E}"}
+  - {t: "12", a: "0", b: "*", c: "99", d: "17", e: "*", name: "tokenTransferLog{E}"}
+  - {t: "12", a: "0", b: "*", c: "99", d: "18", e: "*", name: "lteMonitoringProfile{E}"}
+  - {t: "12", a: "0", b: "*", c: "99", d: "98", e: "*", name: "eventLog{E}"}
+
+  # Table 20: electricity general and service entry objects.
+  - {t: "20", a: "1", b: "*", c: "0", d: "0", e: "255", name: completeElectricityId}
+  - {t: "20", a: "1", b: "*", c: "0", d: "0", e: "0-9", name: "electricityId{e+1}"}
+  - {t: "20", a: "1", b: "*", c: "0", d: "1", e: "0", f: bill, name: billingPeriodCounter}
+  - {t: "20", a: "1", b: "*", c: "0", d: "1", e: "1", name: availableBillingPeriods}
+  - {t: "20", a: "1", b: "*", c: "0", d: "1", e: "2", f: bill, name: billingPeriodTime}
+  - {t: "20", a: "1", b: "*", c: "0", d: "1", e: "3", f: bill, name: billingPeriodCounter2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "1", e: "4", name: availableBillingPeriods2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "1", e: "5", f: bill, name: billingPeriodTime2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "2", e: "0", name: activeFirmwareId}
+  - {t: "20", a: "1", b: "*", c: "0", d: "2", e: "1", name: parameterRecordNumber}
+  - {t: "20", a: "1", b: "*", c: "0", d: "2", e: "1", f: "1", name: parameterRecordNumberLine1}
+  - {t: "20", a: "1", b: "*", c: "0", d: "2", e: "2", name: timeSwitchProgram}
+  - {t: "20", a: "1", b: "*", c: "0", d: "2", e: "3", name: rippleControlProgram}
+  - {t: "20", a: "1", b: "*", c: "0", d: "2", e: "4", name: connectionDiagramId}
+  - {t: "20", a: "1", b: "*", c: "0", d: "2", e: "7", name: passiveCalendarName}
+  - {t: "20", a: "1", b: "*", c: "0", d: "2", e: "8", name: activeFirmwareSignature}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "0", name: activeEnergyLedConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "1", name: reactiveEnergyLedConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "2", name: apparentEnergyLedConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "3", name: activeEnergyPulseConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "4", name: reactiveEnergyPulseConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "5", name: apparentEnergyPulseConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "6", name: voltSquaredHoursLedConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "7", name: ampereSquaredHoursLedConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "8", name: voltSquaredHoursPulseConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "3", e: "9", name: ampereSquaredHoursPulseConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "4", e: "0", name: powerReadingFactor}
+  - {t: "20", a: "1", b: "*", c: "0", d: "4", e: "1", name: energyReadingFactor}
+  - {t: "20", a: "1", b: "*", c: "0", d: "4", e: "2", f: bill, name: ctRatio}
+  - {t: "20", a: "1", b: "*", c: "0", d: "4", e: "3", f: bill, name: vtRatio}
+  - {t: "20", a: "1", b: "*", c: "0", d: "4", e: "4", f: bill, name: transformerRatio}
+  - {t: "20", a: "1", b: "*", c: "0", d: "4", e: "5", f: bill, name: ctRatioDenominator}
+  - {t: "20", a: "1", b: "*", c: "0", d: "4", e: "6", f: bill, name: vtRatioDenominator}
+  - {t: "20", a: "1", b: "*", c: "0", d: "4", e: "7", f: bill, name: transformerRatioDenominator}
+  - {t: "20", a: "1", b: "*", c: "0", d: "6", e: "0", name: nominalVoltage}
+  - {t: "20", a: "1", b: "*", c: "0", d: "6", e: "1", name: nominalCurrent}
+  - {t: "20", a: "1", b: "*", c: "0", d: "6", e: "2", name: nominalFrequency}
+  - {t: "20", a: "1", b: "*", c: "0", d: "6", e: "3", name: maximumCurrent}
+  - {t: "20", a: "1", b: "*", c: "0", d: "6", e: "4", f: bill, name: powerQualityReferenceVoltage}
+  - {t: "20", a: "1", b: "*", c: "0", d: "6", e: "5", name: auxSupplyReferenceVoltage}
+  - {t: "20", a: "1", b: "*", c: "0", d: "7", e: "0", name: activeEnergyInputConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "7", e: "1", name: reactiveEnergyInputConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "7", e: "2", name: apparentEnergyInputConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "7", e: "3", name: voltSquaredHoursInputConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "7", e: "4", name: ampereSquaredHoursInputConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "7", e: "5", name: unitlessInputConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "7", e: "10", name: activeEnergyExportInputConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "7", e: "11", name: reactiveEnergyExportInputConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "7", e: "12", name: apparentEnergyExportInputConstant}
+  - {t: "20", a: "1", b: "*", c: "0", d: "8", e: "0", f: bill, name: measurementPeriod1}
+  - {t: "20", a: "1", b: "*", c: "0", d: "8", e: "1", f: bill, name: measurementPeriod2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "8", e: "2", f: bill, name: measurementPeriod3}
+  - {t: "20", a: "1", b: "*", c: "0", d: "8", e: "3", f: bill, name: testMeasurementPeriod}
+  - {t: "20", a: "1", b: "*", c: "0", d: "8", e: "4", f: bill, name: recordingInterval1}
+  - {t: "20", a: "1", b: "*", c: "0", d: "8", e: "5", f: bill, name: recordingInterval2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "8", e: "6", f: bill, name: billingPeriodLength}
+  - {t: "20", a: "1", b: "*", c: "0", d: "8", e: "7", f: bill, name: billingPeriodLength2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "8", e: "8", f: bill, name: harmonicsMeasurementPeriod}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "0", name: timeSinceBillingReset}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "1", name: localTime}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "2", name: localDate}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "5", name: weekDay}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "6", name: lastResetTime}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "7", name: lastResetDate}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "8", name: outputPulseDuration}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "9", name: clockSyncWindow}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "10", name: clockSyncMethod}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "11", name: clockShiftLimit}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "12", name: billingResetLockout}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "13", name: timeSinceBillingReset2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "14", name: lastResetTime2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "15", name: lastResetDate2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "9", e: "16", name: billingResetLockout2}
+  - {t: "20", a: "1", b: "*", c: "0", d: "10", e: "0", f: bill, name: transformerMagneticLossCoefficient}
+  - {t: "20", a: "1", b: "*", c: "0", d: "10", e: "1", f: bill, name: transformerIronLossCoefficient}
+  - {t: "20", a: "1", b: "*", c: "0", d: "10", e: "2", f: bill, name: lineResistanceLossCoefficient}
+  - {t: "20", a: "1", b: "*", c: "0", d: "10", e: "3", f: bill, name: lineReactanceLossCoefficient}
+  - {t: "20", a: "1", b: "*", c: "0", d: "11", e: "1", name: activePowerAlgorithm}
+  - {t: "20", a: "1", b: "*", c: "0", d: "11", e: "2", name: activeEnergyAlgorithm}
+  - {t: "20", a: "1", b: "*", c: "0", d: "11", e: "3", name: reactivePowerAlgorithm}
+  - {t: "20", a: "1", b: "*", c: "0", d: "11", e: "4", name: reactiveEnergyAlgorithm}
+  - {t: "20", a: "1", b: "*", c: "0", d: "11", e: "5", name: apparentPowerAlgorithm}
+  - {t: "20", a: "1", b: "*", c: "0", d: "11", e: "6", name: apparentEnergyAlgorithm}
+  - {t: "20", a: "1", b: "*", c: "0", d: "11", e: "7", name: powerFactorAlgorithm}
+  - {t: "20", a: "1", b: "*", c: "96", d: "1", e: "0-9", name: "meteringPointId{e+1}"}
+  - {t: "20", a: "1", b: "*", c: "96", d: "5", e: "0", name: internalOperatingStatus}
+  - {t: "20", a: "1", b: "*", c: "96", d: "5", e: "1-4", name: "internalOperatingStatus{e}"}
+  - {t: "20", a: "1", b: "*", c: "96", d: "5", e: "5", name: meterStarted}
+  - {t: "20", a: "1", b: "*", c: "96", d: "10", e: "0", name: missingVoltageStatus}
+  - {t: "20", a: "1", b: "*", c: "96", d: "10", e: "1", name: missingCurrentStatus}
+  - {t: "20", a: "1", b: "*", c: "96", d: "10", e: "2", name: currentWithoutVoltageStatus}
+  - {t: "20", a: "1", b: "*", c: "96", d: "10", e: "3", name: auxSupplyStatus}
+  # Table 21 to 24: error registers, lists, data profiles, register tables.
+  - {t: "21", a: "1", b: "*", c: "97", d: "97", e: "*", name: "errorRegister{E}"}
+  - {t: "22", a: "1", b: "*", c: "98", d: "1", e: "*", name: "billingPeriodData{E}"}
+  - {t: "22", a: "1", b: "*", c: "98", d: "2", e: "*", name: "billingPeriodData2{E}"}
+  - {t: "23", a: "1", b: "*", c: "99", d: "1", e: "*", name: "loadProfile1{E}"}
+  - {t: "23", a: "1", b: "*", c: "99", d: "2", e: "*", name: "loadProfile2{E}"}
+  - {t: "23", a: "1", b: "*", c: "99", d: "3", e: "0", name: testLoadProfile}
+  - {t: "23", a: "1", b: "*", c: "99", d: "10", e: "1", name: voltageDipsProfile}
+  - {t: "23", a: "1", b: "*", c: "99", d: "10", e: "2", name: voltageSwellsProfile}
+  - {t: "23", a: "1", b: "*", c: "99", d: "10", e: "3", name: voltageCutsProfile}
+  - {t: "23", a: "1", b: "*", c: "99", d: "11", e: "*", name: "voltageHarmonicProfileH{e}"}
+  - {t: "23", a: "1", b: "*", c: "99", d: "12", e: "*", name: "currentHarmonicProfileH{e}"}
+  - {t: "23", a: "1", b: "*", c: "99", d: "13", e: "0", name: voltageUnbalanceProfile}
+  - {t: "23", a: "1", b: "*", c: "99", d: "14", e: "0", name: powerQualityProfile}
+  - {t: "23", a: "1", b: "*", c: "99", d: "97", e: "*", name: "powerFailureLog{E}"}
+  - {t: "23", a: "1", b: "*", c: "99", d: "98", e: "*", name: "eventLog{E}"}
+  - {t: "23", a: "1", b: "*", c: "99", d: "99", e: "*", name: "certificationLog{E}"}
+  - {t: "24", a: "1", b: "*", c: "12", d: "32", e: "255", name: voltageDipsTable}
+  - {t: "24", a: "1", b: "*", c: "32", d: "32", e: "255", name: voltageDipsTableL1}
+  - {t: "24", a: "1", b: "*", c: "52", d: "32", e: "255", name: voltageDipsTableL2}
+  - {t: "24", a: "1", b: "*", c: "72", d: "32", e: "255", name: voltageDipsTableL3}
+  - {t: "24", a: "1", b: "*", c: "81", d: "7", e: "255", name: angleTable}
+  - {t: "24", a: "1", b: "*", c: "98", d: "10", e: "*", name: "registerTable{E}"}
+
+  # IEC 62056-6-2:2023 clause 6: COSEM objects (A 0, C 0-89 and the
+  # profiles of the general tables), with their interface classes. The
+  # names are ours.
+  - {t: "6-2 6.2.5", a: "0", b: "*", c: "1", d: "0", e: "*", ic: "8", name: "clock{E}"}
+  - {t: "6-2 6.2.5", a: "0", b: "*", c: "1", d: "1", e: "*", ic: "1", name: "unixClock{E}"}
+  - {t: "6-2 6.2.5", a: "0", b: "*", c: "1", d: "2", e: "*", ic: "1", name: "microsecondsClock{E}"}
+  - {t: "6-2 6.2.5", a: "0", b: "*", c: "1", d: "3", e: "*", ic: "1", name: "minutesClock{E}"}
+  - {t: "6-2 6.2.5", a: "0", b: "*", c: "1", d: "4", e: "*", ic: "1", name: "hoursClock{E}"}
+  - {t: "6-2 6.2.5", a: "0", b: "*", c: "1", d: "5", e: "*", ic: "1", name: "daysClock{E}"}
+  - {t: "6-2 6.2.5", a: "0", b: "*", c: "1", d: "6", e: "*", ic: "1", name: "weeksClock{E}"}
+  - {t: "6-2 6.2.6", a: "0", b: "*", c: "2", d: "0", e: "0", ic: "27", name: modemConfiguration}
+  - {t: "6-2 6.2.6", a: "0", b: "*", c: "2", d: "1", e: "0", ic: "29", name: autoConnect}
+  - {t: "6-2 6.2.6", a: "0", b: "*", c: "2", d: "2", e: "0", ic: "28", name: autoAnswer}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "0", ic: "9", name: globalResetScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "1", ic: "9", name: billingScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "100", ic: "9", name: tariffScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "101", ic: "9", name: testModeScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "102", ic: "9", name: normalModeScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "103", ic: "9", name: outputSignalsScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "104", ic: "9", name: opticalTestOutputScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "105", ic: "9", name: powerQualityScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "106", ic: "9", name: disconnectScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "107", ic: "9", name: imageActivationScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "108", ic: "9", name: pushScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "109", ic: "9", name: loadProfileControlScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "110", ic: "9", name: mbusProfileControlScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "111", ic: "9", name: functionControlScript}
+  - {t: "6-2 6.2.7", a: "0", b: "*", c: "10", d: "0", e: "125", ic: "9", name: broadcastScript}
+  - {t: "6-2 6.2.8", a: "0", b: "*", c: "11", d: "0", e: "*", ic: "11", name: "specialDaysTable{E}"}
+  - {t: "6-2 6.2.9", a: "0", b: "*", c: "12", d: "0", e: "*", ic: "10", name: "schedule{E}"}
+  - {t: "6-2 6.2.10", a: "0", b: "*", c: "13", d: "0", e: "*", ic: "20", name: "activityCalendar{E}"}
+  - {t: "6-2 6.2.11", a: "0", b: "*", c: "14", d: "0", e: "*", ic: "6", name: "registerActivation{E}"}
+  - {t: "6-2 6.2.12", a: "0", b: "*", c: "15", d: "0", e: "0", ic: "22", name: billingSchedule}
+  - {t: "6-2 6.2.12", a: "0", b: "*", c: "15", d: "0", e: "1", ic: "22", name: disconnectSchedule}
+  - {t: "6-2 6.2.12", a: "0", b: "*", c: "15", d: "0", e: "2", ic: "22", name: imageActivationSchedule}
+  - {t: "6-2 6.2.12", a: "0", b: "*", c: "15", d: "0", e: "3", ic: "22", name: outputControlSchedule}
+  - {t: "6-2 6.2.12", a: "0", b: "*", c: "15", d: "0", e: "4", ic: "22", name: pushSchedule}
+  - {t: "6-2 6.2.12", a: "0", b: "*", c: "15", d: "0", e: "5", ic: "22", name: loadProfileControlSchedule}
+  - {t: "6-2 6.2.12", a: "0", b: "*", c: "15", d: "0", e: "6", ic: "22", name: mbusProfileControlSchedule}
+  - {t: "6-2 6.2.12", a: "0", b: "*", c: "15", d: "0", e: "7", ic: "22", name: functionControlSchedule}
+  - {t: "6-2 6.2.13", a: "0", b: "*", c: "16", d: "0", e: "*", ic: "21", name: "registerMonitor{E}"}
+  - {t: "6-2 6.2.13", a: "0", b: "*", c: "16", d: "1", e: "0-9", ic: "21", name: "alarmMonitor{e+1}"}
+  - {t: "6-2 6.2.14", a: "0", b: "*", c: "16", d: "2", e: "*", ic: "65", name: "parameterMonitor{E}"}
+  - {t: "6-2 6.2.15", a: "0", b: "*", c: "17", d: "0", e: "*", ic: "71", name: "limiter{E}"}
+  - {t: "6-2 6.2.16", a: "0", b: "*", c: "18", d: "0", e: "*", ic: "123", name: "arrayManager{E}"}
+  - {t: "6-2 6.2.17", a: "0", b: "*", c: "19", d: "0-9", e: "0", ic: "111", name: "account{d}"}
+  - {t: "6-2 6.2.17", a: "0", b: "*", c: "19", d: "10-19", e: "*", ic: "112", name: "credit{d-10}E{e}"}
+  - {t: "6-2 6.2.17", a: "0", b: "*", c: "19", d: "20-29", e: "*", ic: "113", name: "charge{d-20}E{e}"}
+  - {t: "6-2 6.2.17", a: "0", b: "*", c: "19", d: "40-49", e: "*", ic: "115", name: "tokenGateway{d-40}E{e}"}
+  - {t: "6-2 6.2.17", a: "0", b: "*", c: "19", d: "50-59", e: "1", ic: "1", name: "maxCreditLimit{d-50}"}
+  - {t: "6-2 6.2.17", a: "0", b: "*", c: "19", d: "50-59", e: "2", ic: "1", name: "maxVendLimit{d-50}"}
+  - {t: "6-2 6.2.18", a: "0", b: "*", c: "20", d: "0", e: "0", ic: "19", name: opticalPortSetup}
+  - {t: "6-2 6.2.18", a: "0", b: "*", c: "20", d: "0", e: "1", ic: "19", name: electricalPortSetup}
+  - {t: "6-2 6.2.19", a: "0", b: "*", c: "21", d: "0", e: "0", ic: "7", name: localPortReadout}
+  - {t: "6-2 6.2.19", a: "0", b: "*", c: "21", d: "0", e: "1", ic: "7", name: displayReadout}
+  - {t: "6-2 6.2.19", a: "0", b: "*", c: "21", d: "0", e: "2", ic: "7", name: alternateDisplayReadout}
+  - {t: "6-2 6.2.19", a: "0", b: "*", c: "21", d: "0", e: "3", ic: "7", name: serviceDisplayReadout}
+  - {t: "6-2 6.2.19", a: "0", b: "*", c: "21", d: "0", e: "4", ic: "7", name: configurableDataReadout}
+  - {t: "6-2 6.2.19", a: "0", b: "*", c: "21", d: "0", e: "5-127", ic: "7", name: "readoutProfile{e-4}"}
+  - {t: "6-2 6.2.19", a: "0", b: "*", c: "21", d: "0", e: "*", ic: "1", name: "readoutParameters{E}"}
+  - {t: "6-2 6.2.20", a: "0", b: "*", c: "22", d: "0", e: "0", ic: "23", name: hdlcSetup}
+  - {t: "6-2 6.2.21", a: "0", b: "*", c: "23", d: "0", e: "0", ic: "24", name: twistedPairSetup}
+  - {t: "6-2 6.2.21", a: "0", b: "*", c: "23", d: "1", e: "0", ic: "43", name: twistedPairMacAddress}
+  - {t: "6-2 6.2.21", a: "0", b: "*", c: "23", d: "2", e: "0", ic: "1", name: twistedPairFatalError}
+  - {t: "6-2 6.2.21", a: "0", b: "*", c: "23", d: "3", e: "0", ic: "7", name: twistedPairShortReadout}
+  - {t: "6-2 6.2.21", a: "0", b: "*", c: "23", d: "3", e: "1", ic: "7", name: twistedPairLongReadout}
+  - {t: "6-2 6.2.21", a: "0", b: "*", c: "23", d: "3", e: "2", ic: "7", name: twistedPairAlternateReadout}
+  - {t: "6-2 6.2.21", a: "0", b: "*", c: "23", d: "3", e: "3-9", ic: "7", name: "twistedPairReadout{e-2}"}
+  - {t: "6-2 6.2.21", a: "0", b: "*", c: "23", d: "3", e: "*", ic: "1", name: "twistedPairReadoutParameters{E}"}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "24", d: "0", e: "0", ic: "25", name: mbusSlavePortSetup}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "24", d: "1", e: "0", ic: "72", name: mbusClient}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "24", d: "2", e: "*", ic: "4", name: "mbusValue{e}"}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "24", d: "3", e: "*", ic: "7", name: "mbusProfile{E}"}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "24", d: "4", e: "0", ic: "70", name: mbusDisconnectControl}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "24", d: "5", e: "0", ic: "7", name: mbusControlLog}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "24", d: "6", e: "0", ic: "74", name: mbusMasterPortSetup}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "31", d: "0", e: "0", ic: "73", name: wirelessModeQChannel}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "24", d: "8", e: "*", ic: "76", name: "mbusServerPortSetup{E}"}
+  - {t: "6-2 6.2.22", a: "0", b: "*", c: "24", d: "9", e: "*", ic: "77", name: "mbusDiagnostic{E}"}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "0", e: "0", ic: "41", name: tcpUdpSetup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "1", e: "0", ic: "42", name: ipv4Setup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "2", e: "0", ic: "43", name: macAddressSetup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "3", e: "0", ic: "44", name: pppSetup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "4", e: "0", ic: "45", name: gprsModemSetup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "5", e: "0", ic: "46", name: smtpSetup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "6", e: "0", ic: "47", name: gsmDiagnostic}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "7", e: "0", ic: "48", name: ipv6Setup}
+  - {t: "6-2 6.2.24", a: "0", b: "*", c: "25", d: "9", e: "0", ic: "40", name: pushSetup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "10", e: "0", ic: "100", name: ntpSetup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "11", e: "0", ic: "151", name: lteMonitoring}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "12", e: "0", ic: "126", name: schcLpwanSetup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "13", e: "0", ic: "127", name: schcLpwanDiagnostic}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "14", e: "0", ic: "128", name: schcLoRaWanSetup}
+  - {t: "6-2 6.2.23", a: "0", b: "*", c: "25", d: "15", e: "0", ic: "129", name: schcLoRaWanDiagnostic}
+  - {t: "6-2 6.2.25", a: "0", b: "*", c: "26", d: "0", e: "0", ic: "50", name: sfskPhyMacSetup}
+  - {t: "6-2 6.2.25", a: "0", b: "*", c: "26", d: "1", e: "0", ic: "51", name: sfskActiveInitiator}
+  - {t: "6-2 6.2.25", a: "0", b: "*", c: "26", d: "2", e: "0", ic: "52", name: sfskSyncTimeouts}
+  - {t: "6-2 6.2.25", a: "0", b: "*", c: "26", d: "3", e: "0", ic: "53", name: sfskMacCounters}
+  - {t: "6-2 6.2.25", a: "0", b: "*", c: "26", d: "5", e: "0", ic: "55", name: sfskLlcSetup}
+  - {t: "6-2 6.2.25", a: "0", b: "*", c: "26", d: "6", e: "0", ic: "56", name: sfskReportingSystems}
+  - {t: "6-2 6.2.26", a: "0", b: "*", c: "27", d: "0", e: "0", ic: "57", name: llcType1Setup}
+  - {t: "6-2 6.2.26", a: "0", b: "*", c: "27", d: "1", e: "0", ic: "58", name: llcType2Setup}
+  - {t: "6-2 6.2.26", a: "0", b: "*", c: "27", d: "2", e: "0", ic: "59", name: llcType3Setup}
+  - {t: "6-2 6.2.27", a: "0", b: "*", c: "28", d: "0", e: "0", ic: "80", name: primeLlcSscsSetup}
+  - {t: "6-2 6.2.27", a: "0", b: "*", c: "28", d: "1", e: "0", ic: "81", name: primePhyCounters}
+  - {t: "6-2 6.2.27", a: "0", b: "*", c: "28", d: "2", e: "0", ic: "82", name: primeMacSetup}
+  - {t: "6-2 6.2.27", a: "0", b: "*", c: "28", d: "3", e: "0", ic: "83", name: primeMacParameters}
+  - {t: "6-2 6.2.27", a: "0", b: "*", c: "28", d: "4", e: "0", ic: "84", name: primeMacCounters}
+  - {t: "6-2 6.2.27", a: "0", b: "*", c: "28", d: "5", e: "0", ic: "85", name: primeNetworkAdministration}
+  - {t: "6-2 6.2.27", a: "0", b: "*", c: "28", d: "6", e: "0", ic: "43", name: primeMacAddressSetup}
+  - {t: "6-2 6.2.27", a: "0", b: "*", c: "28", d: "7", e: "0", ic: "86", name: primeApplicationId}
+  - {t: "6-2 6.2.28", a: "0", b: "*", c: "29", d: "0", e: "0", ic: "90", name: g3MacCounters}
+  - {t: "6-2 6.2.28", a: "0", b: "*", c: "29", d: "1", e: "0", ic: "91", name: g3MacSetup}
+  - {t: "6-2 6.2.28", a: "0", b: "*", c: "29", d: "2", e: "0", ic: "92", name: g3AdaptationSetup}
+  - {t: "6-2 6.2.29", a: "0", b: "*", c: "30", d: "0", e: "*", ic: "101", name: "zigbeeSasStartup{E}"}
+  - {t: "6-2 6.2.29", a: "0", b: "*", c: "30", d: "1", e: "*", ic: "102", name: "zigbeeSasJoin{E}"}
+  - {t: "6-2 6.2.29", a: "0", b: "*", c: "30", d: "2", e: "*", ic: "103", name: "zigbeeApsFragmentation{E}"}
+  - {t: "6-2 6.2.29", a: "0", b: "*", c: "30", d: "3", e: "*", ic: "104", name: "zigbeeNetworkControl{E}"}
+  - {t: "6-2 6.2.29", a: "0", b: "*", c: "30", d: "4", e: "*", ic: "105", name: "zigbeeTunnelSetup{E}"}
+  - {t: "6-2 6.2.30", a: "0", b: "*", c: "32", d: "0", e: "0", ic: "130", name: iso14908Identification}
+  - {t: "6-2 6.2.30", a: "0", b: "*", c: "32", d: "1", e: "0", ic: "131", name: iso14908ProtocolSetup}
+  - {t: "6-2 6.2.30", a: "0", b: "*", c: "32", d: "2", e: "0", ic: "132", name: iso14908ProtocolStatus}
+  - {t: "6-2 6.2.30", a: "0", b: "*", c: "32", d: "3", e: "0", ic: "133", name: iso14908Diagnostic}
+  - {t: "6-2 6.2.31", a: "0", b: "*", c: "33", d: "0", e: "0", ic: "140", name: hsplcMacSetup}
+  - {t: "6-2 6.2.31", a: "0", b: "*", c: "33", d: "1", e: "0", ic: "141", name: hsplcCpasSetup}
+  - {t: "6-2 6.2.31", a: "0", b: "*", c: "33", d: "2", e: "0", ic: "142", name: hsplcIpSsasSetup}
+  - {t: "6-2 6.2.31", a: "0", b: "*", c: "33", d: "3", e: "0", ic: "143", name: hsplcHdlcSsasSetup}
+  - {t: "6-2 6.2.32", a: "0", b: "*", c: "34", d: "0", e: "0", ic: "95", name: wisunSetup}
+  - {t: "6-2 6.2.32", a: "0", b: "*", c: "34", d: "1", e: "0", ic: "96", name: wisunDiagnostic}
+  - {t: "6-2 6.2.32", a: "0", b: "*", c: "34", d: "2", e: "0", ic: "97", name: rplDiagnostic}
+  - {t: "6-2 6.2.32", a: "0", b: "*", c: "34", d: "3", e: "0", ic: "98", name: mplDiagnostic}
+  - {t: "6-2 6.2.33", a: "0", b: "0", c: "40", d: "0", e: "0", ic: "12,15", name: currentAssociation}
+  - {t: "6-2 6.2.33", a: "0", b: "0", c: "40", d: "0", e: "1-127", ic: "12,15", name: "association{e}"}
+  - {t: "6-2 6.2.34", a: "0", b: "0", c: "41", d: "0", e: "0", ic: "17", name: sapAssignment}
+  - {t: "6-2 6.2.35", a: "0", b: "0", c: "42", d: "0", e: "0", ic: "1,3", name: logicalDeviceName}
+  - {t: "6-2 6.2.36", a: "0", b: "0", c: "43", d: "0", e: "*", ic: "64", name: "securitySetup{E}"}
+  - {t: "6-2 6.2.36", a: "0", b: "*", c: "43", d: "1", e: "*", ic: "1,3", name: "invocationCounter{E}"}
+  - {t: "6-2 6.2.36", a: "0", b: "0", c: "43", d: "2", e: "*", ic: "30", name: "dataProtection{E}"}
+  - {t: "6-2 6.2.37", a: "0", b: "0", c: "44", d: "0", e: "*", ic: "18", name: "imageTransfer{E}"}
+  - {t: "6-2 6.2.38", a: "0", b: "0", c: "44", d: "1", e: "*", ic: "122", name: "functionControl{E}"}
+  - {t: "6-2 6.2.39", a: "0", b: "*", c: "44", d: "2", e: "*", ic: "124", name: "commPortProtection{E}"}
+  - {t: "6-2 6.2.40", a: "0", b: "*", c: "65", d: "0-15", e: "0-127", ic: "26", name: "standardTable{ut}"}
+  - {t: "6-2 6.2.40", a: "0", b: "*", c: "65", d: "16-31", e: "0-127", ic: "26", name: "manufacturerTable{ut}"}
+  - {t: "6-2 6.2.40", a: "0", b: "*", c: "65", d: "32-47", e: "0-127", ic: "26", name: "pendingStandardTable{ut}"}
+  - {t: "6-2 6.2.40", a: "0", b: "*", c: "65", d: "48-63", e: "0-127", ic: "26", name: "pendingManufacturerTable{ut}"}
+  - {t: "6-2 6.2.41", a: "0", b: "*", c: "66", d: "0", e: "*", ic: "62", name: "compactData{E}"}
+  - {t: "6-2 6.2.63", a: "0", b: "*", c: "97", d: "97", e: "255", ic: "7,61", name: errorRegisters}
+  - {t: "6-2 6.2.64", a: "0", b: "*", c: "97", d: "98", e: "255", ic: "7,61", name: alarmRegisters}
+  - {t: "6-2 6.3.6", a: "1", b: "*", c: "96", d: "1", e: "255", ic: "7,61", name: meteringPointIds}
+
+  # EN 13757-1:2021 clause 11.3: the general and service entry, error,
+  # list and profile objects of media 4 to 9 (Tables 18 to 21, 26 to 29,
+  # 41 to 44, 48 to 51). {m} is the medium's prefix.
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "0", e: "255", name: "{m}CompleteId"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "0", e: "0-9", name: "{m}Id{e+1}"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "0", e: "255", name: "{m}CompleteId"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "0", e: "0-9", name: "{m}Id{e+1}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "0", e: "255", name: "{m}CompleteId"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "0", e: "0-9", name: "{m}Id{e+1}"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "0", e: "255", name: "{m}CompleteId"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "0", e: "0-9", name: "{m}Id{e+1}"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "1", e: "1", name: "{m}HistoricalCounter"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "1", e: "2", name: "{m}AvailableHistoricalValues"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "1", e: "10", name: "{m}SetDate"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "1", e: "11", name: "{m}BillingDate"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "2", e: "0", name: "{m}ProgramVersion"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "2", e: "1", name: "{m}FirmwareVersion"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "2", e: "2", name: "{m}SoftwareVersion"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "2", e: "3", name: "{m}MeasuringPrinciple"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "4", e: "0", name: "{m}RatingFactor"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "4", e: "1", name: "{m}ThermalOutputRatingFactor"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "4", e: "2", name: "{m}ThermalCouplingRatingFactor"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "4", e: "3", name: "{m}RoomSideCouplingFactor"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "4", e: "4", name: "{m}HeaterSideCouplingFactor"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "4", e: "5", name: "{m}LowTemperatureRatingFactor"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "4", e: "6", name: "{m}DisplayScalingFactor"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "5", e: "10", name: "{m}StartTemperatureThreshold"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "5", e: "11", name: "{m}DifferenceTemperatureThreshold"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "8", e: "0", name: "{m}AveragingPeriod"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "8", e: "4", name: "{m}RecordingInterval"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "8", e: "6", name: "{m}BillingPeriod"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "9", e: "1", name: "{m}LocalTime"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "9", e: "2", name: "{m}LocalDate"}
+  - {t: "EN 18", a: "4", b: "*", c: "0", d: "9", e: "3", name: "{m}LastBillingTime"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "1", e: "1", f: bill, name: "{m}HistoricalCounter"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "1", e: "2", f: bill, name: "{m}AvailableHistoricalValues"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "1", e: "10", name: "{m}SetDate"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "1", e: "11", name: "{m}BillingDate"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "2", e: "0", name: "{m}ProgramVersion"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "2", e: "1", name: "{m}FirmwareVersion"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "2", e: "2", name: "{m}SoftwareVersion"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "2", e: "3", name: "{m}MeterLocation"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "2", e: "4", name: "{m}DeviceVersion"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "2", e: "10", name: "{m}FlowTemperatureSensorSerial"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "2", e: "11", name: "{m}ReturnTemperatureSensorSerial"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "2", e: "12", name: "{m}FlowTransducerSerial"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "2", e: "13", name: "{m}ReturnTransducerSerial"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "4", e: "1", name: "{m}HeatCoefficient"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "4", e: "2", name: "{m}BackupPressure"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "4", e: "3", name: "{m}Enthalpy"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "5", e: "1-9", name: "{m}RateThresholdT{e}"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "5", e: "21", name: "{m}MaxContractedFlowRate"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "5", e: "22", name: "{m}MaxContractedPower"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "5", e: "23", name: "{m}MaxContractedTemperatureDifference"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "5", e: "24", name: "{m}MinContractedReturnTemperature"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "0", name: "{m}AveragingPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "1", name: "{m}InstantaneousAveragingPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "2", name: "{m}VolumeAveragingPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "3", name: "{m}TemperatureAveragingPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "4", name: "{m}PressureAveragingPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "5", name: "{m}PowerAveragingPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "6", name: "{m}FlowRateAveragingPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "7", name: "{m}TestAveragingPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "25", name: "{m}TestPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "34", name: "{m}BillingPeriod"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "11-14", name: "{m}PeakPeriod{e-10}"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "21-24", name: "{m}PeriodicalPeriod{e-20}"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "8", e: "31-33", name: "{m}RecordingInterval{e-30}"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "9", e: "1", name: "{m}LocalTime"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "9", e: "2", name: "{m}LocalDate"}
+  - {t: "EN 26", a: "5,6", b: "*", c: "0", d: "9", e: "3", name: "{m}LastBillingTime"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "0", f: bill, name: "{m}BillingPeriodCounter1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "1", name: "{m}AvailableBillingPeriods1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "2", f: bill, name: "{m}BillingPeriodTime1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "3", f: bill, name: "{m}BillingPeriodCounter2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "4", name: "{m}AvailableBillingPeriods2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "5", f: bill, name: "{m}BillingPeriodTime2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "6", f: bill, name: "{m}BillingPeriodCounter3"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "7", name: "{m}AvailableBillingPeriods3"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "8", f: bill, name: "{m}BillingPeriodTime3"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "9", f: bill, name: "{m}BillingPeriodCounter4"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "10", name: "{m}AvailableBillingPeriods4"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "1", e: "11", f: bill, name: "{m}BillingPeriodTime4"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "0", name: "{m}ProgramVersion"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "1", name: "{m}FirmwareVersion"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "2", name: "{m}SoftwareVersion"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "3", name: "{m}DeviceVersion"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "8", name: "{m}FirmwareSignature"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "10", name: "{m}ChannelCount"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "11", name: "{m}PressureSensorSerial"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "12", name: "{m}TemperatureSensorSerial"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "13", name: "{m}CalculatorSerial"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "14", name: "{m}VolumeSensorSerial"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "15", name: "{m}DensitySensorSerial"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "16", name: "{m}SensorSerial"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "17", name: "{m}DigitalOutputConfig"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "2", e: "18", name: "{m}AnalogueOutputConfig"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "3", e: "0", name: "{m}OutputPulseConstantVolumeFwd"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "3", e: "1", name: "{m}OutputPulseConstantVolumeRev"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "3", e: "2", name: "{m}OutputPulseConstantVolumeAbs"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "3", e: "3", name: "{m}OutputPulseConstantVolumeFwdBase"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "3", e: "4", name: "{m}OutputPulseConstantVolumeRevBase"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "3", e: "5", name: "{m}OutputPulseConstantVolumeAbsBase"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "4", e: "0-4", name: "{m}ConversionConstant{e}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "1", f: "1-4", name: "{m}OverConsumptionThresholdMp2Limit{f}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "1", f: "11-14", name: "{m}OverConsumptionThresholdMp3Limit{f-10}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "2", f: "1-9", name: "{m}RateThresholdMp2T{f}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "2", f: "11-19", name: "{m}RateThresholdMp3T{f-10}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "3", name: "{m}MaxContractedConsumption1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "4", name: "{m}MaxContractedConsumption2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "11", name: "{m}MinTemperatureLimit"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "12", name: "{m}MaxTemperatureLimit"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "13", name: "{m}MinPressureLimit"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "5", e: "14", name: "{m}MaxPressureLimit"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "6", e: "1", name: "{m}NominalPressure"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "6", e: "2", name: "{m}NominalTemperature"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "6", e: "3", name: "{m}Qmin"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "6", e: "4", name: "{m}Qmax"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "7", e: "0", name: "{m}InputPulseConstantVolumeFwd"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "7", e: "1", name: "{m}InputPulseConstantVolumeRev"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "7", e: "2", name: "{m}InputPulseConstantVolumeAbs"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "7", e: "3", name: "{m}InputPulseConstantVolumeFwdBase"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "7", e: "4", name: "{m}InputPulseConstantVolumeRevBase"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "7", e: "5", name: "{m}InputPulseConstantVolumeAbsBase"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "1", name: "{m}RecordingInterval1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "2", name: "{m}RecordingInterval2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "3", name: "{m}MeasurementPeriod1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "4", name: "{m}MeasurementPeriod2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "5", name: "{m}MeasurementPeriod3"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "6", name: "{m}MeasurementPeriod4"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "10", name: "{m}BillingPeriod"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "15", name: "{m}ProcessInterval5"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "16", name: "{m}ProcessInterval6"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "35", name: "{m}SubPeriods"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "11-14", name: "{m}ProcessInterval{e-10}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "17-19", name: "{m}IndexMeasurementPeriod{e-16}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "20-23", name: "{m}IndexBillingPeriod{e-19}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "8", e: "25-34", name: "{m}AveragingPeriod{e-24}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "0", name: "{m}DaysSinceReset1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "1", name: "{m}LocalTime"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "2", name: "{m}LocalDate"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "3", name: "{m}DayStart"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "4", name: "{m}ResidualTimeShift"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "6", name: "{m}LastResetTime1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "7", name: "{m}LastResetDate1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "11", name: "{m}ClockShiftLimit"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "12", name: "{m}ResetLockout1"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "13", name: "{m}DaysSinceReset2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "14", name: "{m}LastResetTime2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "15", name: "{m}LastResetDate2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "16", name: "{m}ResetLockout2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "17", name: "{m}DaysSinceReset3"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "18", name: "{m}LastResetTime3"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "19", name: "{m}LastResetDate3"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "20", name: "{m}ResetLockout3"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "21", name: "{m}DaysSinceReset4"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "22", name: "{m}LastResetTime4"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "23", name: "{m}LastResetDate4"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "9", e: "24", name: "{m}ResetLockout4"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "10", e: "0", name: "{m}HeatingTemperature"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "10", e: "1", name: "{m}HeatingTemperatureAvg15min"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "10", e: "11", name: "{m}HeatingTemperatureAvg60min"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "10", e: "21", name: "{m}HeatingTemperatureAvgDay"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "10", e: "31", name: "{m}HeatingTemperatureAvgMonth"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "11", e: "0", name: "{m}AmbientTemperature"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "11", e: "1", name: "{m}AmbientTemperatureAvg15min"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "11", e: "11", name: "{m}AmbientTemperatureAvg60min"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "11", e: "21", name: "{m}AmbientTemperatureAvgDay"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "11", e: "31", name: "{m}AmbientTemperatureAvgMonth"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "12", e: "8-20,45,46,54,60-84", name: "{m}ConversionParameter{e}"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "1", name: "{m}PipeDiameter"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "2", name: "{m}OrificeDiameter"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "3", name: "{m}PressureTapType"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "4", name: "{m}FlowCoefficient"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "5", name: "{m}ExpansionCoefficient"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "6", name: "{m}RefluxCoefficient"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "7", name: "{m}IsentropicCoefficient"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "8", name: "{m}DynamicViscosity"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "9", name: "{m}CutOffDifferentialPressure"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "13", e: "10", name: "{m}ReynoldsNumber"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "14", e: "1", name: "{m}DensimeterK0"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "14", e: "2", name: "{m}DensimeterK2"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "14", e: "10", name: "{m}DensimeterPeriod"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "14", e: "11", name: "{m}DensimeterPeriod15min"}
+  - {t: "EN 41", a: "7", b: "*", c: "0", d: "15", e: "*", name: "{m}SensorManager{e}"}
+  - {t: "EN 41", a: "7", b: "*", c: "96", d: "5", e: "0", name: "{m}InternalOperatingStatus"}
+  - {t: "EN 41", a: "7", b: "*", c: "96", d: "5", e: "1-9", name: "{m}StatusWord{e}"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "1", e: "1", name: "{m}HistoricalCounter"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "1", e: "2", name: "{m}AvailableHistoricalValues"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "1", e: "10", name: "{m}DueDate"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "1", e: "11", name: "{m}BillingDate"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "1", e: "12", name: "{m}BillingDatePeriod"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "2", e: "0", name: "{m}ProgramVersion"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "2", e: "3", name: "{m}DeviceVersion"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "5", e: "1", name: "{m}ContractedMaxConsumption"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "7", e: "1", name: "{m}InputPulseConstantVolumeFwd"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "8", e: "1", name: "{m}RecordingInterval"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "8", e: "6", name: "{m}FlowRateAveragingPeriod"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "9", e: "1", name: "{m}LocalTime"}
+  - {t: "EN 48", a: "8,9", b: "*", c: "0", d: "9", e: "2", name: "{m}LocalDate"}
+  - {t: "EN 19", a: "4", b: "*", c: "97", d: "97", e: "*", name: "{m}ErrorRegister{e}"}
+  - {t: "EN 27", a: "5,6", b: "*", c: "97", d: "97", e: "*", name: "{m}ErrorRegister{e}"}
+  - {t: "EN 42", a: "7", b: "*", c: "97", d: "97", e: "*", name: "{m}ErrorRegister{e}"}
+  - {t: "EN 49", a: "8,9", b: "*", c: "97", d: "97", e: "*", name: "{m}ErrorRegister{e}"}
+  - {t: "EN 20", a: "4", b: "*", c: "98", d: "1", e: "*", name: "{m}BillingPeriodData{E}"}
+  - {t: "EN 20", a: "4", b: "*", c: "98", d: "2", e: "*", name: "{m}BillingPeriodData2{E}"}
+  - {t: "EN 28", a: "5,6", b: "*", c: "98", d: "1", e: "*", name: "{m}BillingPeriodData{E}"}
+  - {t: "EN 28", a: "5,6", b: "*", c: "98", d: "2", e: "*", name: "{m}BillingPeriodData2{E}"}
+  - {t: "EN 50", a: "8,9", b: "*", c: "98", d: "1", e: "*", name: "{m}BillingPeriodData{E}"}
+  - {t: "EN 50", a: "8,9", b: "*", c: "98", d: "2", e: "*", name: "{m}BillingPeriodData2{E}"}
+  - {t: "EN 43", a: "7", b: "*", c: "98", d: "1-4", e: "*", name: "{m}BillingPeriodData{d}{E}"}
+  - {t: "EN 43", a: "7", b: "*", c: "98", d: "11", e: "*", name: "{m}EventBillingData{E}"}
+  - {t: "EN 21", a: "4", b: "*", c: "99", d: "1", e: "*", name: "{m}Profile{E}"}
+  - {t: "EN 51", a: "8,9", b: "*", c: "99", d: "1", e: "*", name: "{m}Profile{E}"}
+  - {t: "EN 29", a: "5,6", b: "*", c: "99", d: "1", e: "1-3", name: "{m}ConsumptionProfile{e}"}
+  - {t: "EN 29", a: "5,6", b: "*", c: "99", d: "2", e: "1-3", name: "{m}MaximaProfile{e}"}
+  - {t: "EN 29", a: "5,6", b: "*", c: "99", d: "3", e: "1", name: "{m}TestProfile"}
+  - {t: "EN 29", a: "5,6", b: "*", c: "99", d: "99", e: "*", name: "{m}CertificationLog{E}"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "1", e: "4", name: "{m}LoadProfile1"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "2", e: "4", name: "{m}LoadProfile2"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "3", e: "4", name: "{m}MaximaProfile1"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "4", e: "4", name: "{m}MaximaProfile2"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "97", e: "*", name: "{m}PowerFailureLog{E}"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "98", e: "*", name: "{m}EventLog{E}"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "99", e: "0", name: "{m}CertificationLog"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "99", e: "1", name: "{m}LoadProfile15min"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "99", e: "2", name: "{m}LoadProfile60min"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "99", e: "3", name: "{m}LoadProfileDay"}
+  - {t: "EN 44", a: "7", b: "*", c: "99", d: "99", e: "4", name: "{m}LoadProfileMonth"}
+
+# IEC 62056-6-2:2023 6.2.3, 6.2.4, 6.2.42 to 6.2.66 and 6.3.2 to 6.3.7:
+# interface classes of the objects the IEC 62056-6-1 tables above define
+# (first matching row). A row's own ic wins over this list.
+classes:
+  - {a: "0,1", b: "*", c: "0", d: "1", e: "*", ic: "1,3,4"}
+  - {a: "0,1", b: "*", c: "0", d: "2", e: "*", ic: "1,3,4"}
+  - {a: "0,1", b: "*", c: "0", d: "9", e: "*", ic: "1,3,4"}
+  - {a: "1", b: "*", c: "0", d: "0", e: "255", ic: "7,61"}
+  - {a: "1", b: "*", c: "0", d: "0", e: "0-9", ic: "1,3,4"}
+  - {a: "1", b: "*", c: "0", d: "3,7,8", e: "*", ic: "1,3,4"}
+  - {a: "1", b: "*", c: "0", d: "4,6,10", e: "*", ic: "3,4"}
+  - {a: "1", b: "*", c: "0", d: "11", e: "*", ic: "1,3"}
+  - {a: "0", b: "*", c: "96", d: "1", e: "255", ic: "7,61"}
+  - {a: "0,1", b: "*", c: "96", d: "1", e: "0-10", ic: "1,3,4"}
+  - {a: "0", b: "*", c: "96", d: "2", e: "*", ic: "1,3,4"}
+  - {a: "0", b: "*", c: "96", d: "3,4,5", e: "0", ic: "1,3,4,63,7,61"}
+  - {a: "0", b: "*", c: "96", d: "3,4,5", e: "1-4", ic: "1,3,4,63"}
+  - {a: "0", b: "*", c: "96", d: "3", e: "10", ic: "70"}
+  - {a: "0", b: "*", c: "96", d: "3", e: "20-29", ic: "68"}
+  - {a: "1", b: "*", c: "96", d: "5,10", e: "*", ic: "1,3,4,63"}
+  - {a: "0", b: "*", c: "96", d: "9", e: "*", ic: "3,4"}
+  - {a: "0", b: "*", c: "96", d: "10", e: "*", ic: "1,3,4,63"}
+  - {a: "0", b: "*", c: "96", d: "6-8,11-17,20", e: "*", ic: "1,3,4"}
+  - {a: "0,1", b: "*", c: "97", d: "97,98", e: "*", ic: "1,3,4"}
+  - {a: "0,1", b: "*", c: "98", d: "1,2", e: "*", ic: "7"}
+  - {a: "0,1", b: "*", c: "98", d: "10", e: "*", ic: "61"}
+  - {a: "0,1", b: "*", c: "99", d: "*", e: "*", ic: "7"}
+  - {a: "1", b: "*", c: "12,32,52,72,81", d: "7,32", e: "255", ic: "61"}
+
+# Codes set aside in Table 20 without a meaning here.
+reservedFor:
+  - {a: "1", b: "*", c: "0", d: "5", e: "*", f: "*", who: Germany, label: "demand limits for excess consumption"}
+  - {a: "1", b: "*", c: "0", d: "9", e: "3-4", f: "*", who: Germany, label: "time entries"}
+
+# EN 13757-1:2021 clause 11: the value
+# groups of media A 4 to 9. For each medium, quantity groups give the C
+# codes, the D table that applies to them and how E is read; F is a
+# billing period (11.1.4.8, Table 56) or 255. The medium's objects are the
+# rows with t "EN <table>" in objects below. Names are ours; {m} in an
+# object name is the medium prefix. Source defects: F-1200 to F-1207.
+media:
+  - a: "4"
+    prefix: hca
+    ref: "11.3.2"
+    groups:
+      - d: hca
+        e: rates9
+        c:
+          - {c: 1, q: UnratedIntegral, label: "unrated integral"}
+          - {c: 2, q: RatedIntegral, label: "rated integral"}
+          - {c: 3, q: RadiatorTemperature, label: "radiator surface temperature"}
+          - {c: 4, q: HeatingMediumTemperature, label: "heating medium temperature"}
+          - {c: 5, q: FlowTemperature, label: "flow temperature"}
+          - {c: 6, q: ReturnTemperature, label: "return temperature"}
+          - {c: 7, q: RoomTemperature, label: "room temperature"}
+  - a: "5"
+    prefix: cooling
+    ref: "11.3.3"
+    groups: &thermal
+      - d: thermal
+        e: rates9
+        c:
+          - {c: 1, q: Energy, label: "energy"}
+          - {c: 2, q: Volume, label: "volume"}
+          - {c: 3, q: Mass, label: "mass"}
+          - {c: 4, q: FlowVolume, label: "inlet (flow) volume"}
+          - {c: 5, q: FlowMass, label: "inlet (flow) mass"}
+          - {c: 6, q: ReturnVolume, label: "outlet (return) volume"}
+          - {c: 7, q: ReturnMass, label: "outlet (return) mass"}
+          - {c: 8, q: Power, label: "power"}
+          - {c: 9, q: FlowRate, label: "flow rate"}
+          - {c: 10, q: FlowTemperature, label: "inlet (flow) temperature"}
+          - {c: 11, q: ReturnTemperature, label: "outlet (return) temperature"}
+          - {c: 12, q: TemperatureDifference, label: "temperature difference"}
+          - {c: 13, q: Pressure, label: "pressure"}
+  - a: "6"
+    prefix: heat
+    ref: "11.3.3"
+    groups: *thermal
+  - a: "7"
+    prefix: gas
+    ref: "11.3.4"
+    groups:
+      - d: gasIndex
+        e: rates63
+        c:
+          - {c: 1, q: MeterVolumeFwdUndisturbed, label: "meter volume, forward, undisturbed"}
+          - {c: 2, q: MeterVolumeFwdDisturbed, label: "meter volume, forward, disturbed"}
+          - {c: 3, q: MeterVolumeFwd, label: "meter volume, forward, absolute"}
+          - {c: 4, q: MeterVolumeRevUndisturbed, label: "meter volume, reverse, undisturbed"}
+          - {c: 5, q: MeterVolumeRevDisturbed, label: "meter volume, reverse, disturbed"}
+          - {c: 6, q: MeterVolumeRev, label: "meter volume, reverse, absolute"}
+          - {c: 7, q: EncoderVolumeFwd, label: "meter volume, forward, absolute (encoder)"}
+          - {c: 8, q: EncoderVolumeRev, label: "meter volume, reverse, absolute (encoder)"}
+          - {c: 11, q: ConverterVolumeFwdUndisturbed, label: "converter volume, forward, undisturbed"}
+          - {c: 12, q: ConverterVolumeFwdDisturbed, label: "converter volume, forward, disturbed"}
+          - {c: 13, q: ConverterVolumeFwd, label: "converter volume, forward, absolute"}
+          - {c: 14, q: ConverterVolumeRevUndisturbed, label: "converter volume, reverse, undisturbed"}
+          - {c: 15, q: ConverterVolumeRevDisturbed, label: "converter volume, reverse, disturbed"}
+          - {c: 16, q: ConverterVolumeRev, label: "converter volume, reverse, absolute"}
+          - {c: 21, q: LoggerVolumeFwdUndisturbed, label: "logger volume, forward, undisturbed"}
+          - {c: 22, q: LoggerVolumeFwdDisturbed, label: "logger volume, forward, disturbed"}
+          - {c: 23, q: LoggerVolumeFwd, label: "logger volume, forward, absolute"}
+          - {c: 24, q: LoggerVolumeRevUndisturbed, label: "logger volume, reverse, undisturbed"}
+          - {c: 25, q: LoggerVolumeRevDisturbed, label: "logger volume, reverse, disturbed"}
+          - {c: 26, q: LoggerVolumeRev, label: "logger volume, reverse, absolute"}
+          - {c: 31, q: EnergyFwdUndisturbed, label: "energy, forward, undisturbed"}
+          - {c: 32, q: EnergyFwdDisturbed, label: "energy, forward, disturbed"}
+          - {c: 33, q: EnergyFwd, label: "energy, forward, absolute"}
+          - {c: 34, q: EnergyRevUndisturbed, label: "energy, reverse, undisturbed"}
+          - {c: 35, q: EnergyRevDisturbed, label: "energy, reverse, disturbed"}
+          - {c: 36, q: EnergyRev, label: "energy, reverse, absolute"}
+          - {c: 61, q: MassFwdUndisturbed, label: "mass, forward, undisturbed"}
+          - {c: 62, q: MassFwdDisturbed, label: "mass, forward, disturbed"}
+          - {c: 63, q: MassFwd, label: "mass, forward, absolute"}
+          - {c: 64, q: MassRevUndisturbed, label: "mass, reverse, undisturbed"}
+          - {c: 65, q: MassRevDisturbed, label: "mass, reverse, disturbed"}
+          - {c: 66, q: MassRev, label: "mass, reverse, absolute"}
+      - d: gasFlow
+        e: zero
+        c:
+          - {c: 43, q: FlowRate, label: "flow rate"}
+      - d: gasProcess
+        e: zero
+        c:
+          - {c: 41, q: Temperature, label: "absolute temperature"}
+          - {c: 42, q: Pressure, label: "absolute pressure"}
+          - {c: 44, q: SoundVelocity, label: "velocity of sound"}
+          - {c: 45, q: Density, label: "density of gas"}
+          - {c: 46, q: RelativeDensity, label: "relative density"}
+          - {c: 47, q: GaugePressure, label: "gauge pressure"}
+          - {c: 48, q: DifferentialPressure, label: "differential pressure"}
+          - {c: 49, q: AirDensity, label: "density of air"}
+      - d: gasConversion
+        e: gasAverages
+        eByD: {"12": rates63}
+        c:
+          - {c: 51, q: CorrectionFactor, label: "correction factor"}
+          - {c: 52, q: ConversionFactor, label: "conversion factor"}
+          - {c: 53, q: CompressibilityFactor, label: "compressibility factor"}
+          - {c: 54, q: SuperiorCalorificValue, label: "superior calorific value"}
+          - {c: 55, q: GasLawDeviation, label: "gas law deviation coefficient"}
+      - d: gasAnalysis
+        e: gasAverages
+        c:
+          - {c: 70, q: "", label: "natural gas analysis"}
+  - a: "8"
+    prefix: coldWater
+    ref: "11.3.5"
+    groups: &water
+      - d: water
+        e: rates9
+        c:
+          - {c: 1, q: Volume, label: "accumulated volume"}
+          - {c: 2, q: FlowRate, label: "flow rate"}
+          - {c: 3, q: ForwardTemperature, label: "forward temperature"}
+          - {c: 4, q: ForwardVolume, label: "forward volume"}
+          - {c: 5, q: ReverseVolume, label: "reverse volume"}
+  - a: "9"
+    prefix: hotWater
+    ref: "11.3.5"
+    groups: *water
+
+# D tables (s: name suffix).
+mediaD:
+  hca:  # Table 16
+      - {d: 0, s: "", label: "current value"}
+      - {d: 1, s: Periodical, label: "periodical value"}
+      - {d: 2, s: SetDate, label: "set date value"}
+      - {d: 3, s: BillingDate, label: "billing date value"}
+      - {d: 4, s: Min, label: "minimum"}
+      - {d: 5, s: Max, label: "maximum"}
+      - {d: 6, s: Test, label: "test value"}
+  water:  # Table 46
+      - {d: 0, s: "", label: "current value"}
+      - {d: 1, s: Periodical, label: "periodical value"}
+      - {d: 2, s: SetDate, label: "set date value"}
+      - {d: 3, s: BillingDate, label: "billing date value"}
+      - {d: 4, s: Min, label: "minimum"}
+      - {d: 5, s: Max, label: "maximum"}
+      - {d: 6, s: Test, label: "test value"}
+  thermal:  # Table 24
+      - {d: 0, s: "", label: "current value"}
+      - {d: 1, s: Periodical1, label: "periodical value 1"}
+      - {d: 2, s: SetDate, label: "set date value"}
+      - {d: 3, s: BillingDate, label: "billing date value"}
+      - {d: 4, s: Min1, label: "minimum 1"}
+      - {d: 5, s: Max1, label: "maximum 1"}
+      - {d: 6, s: Test, label: "test value"}
+      - {d: 7, s: Instantaneous, label: "instantaneous value"}
+      - {d: 8, s: Integral1, label: "time integral 1 (from the origin)"}
+      - {d: 9, s: Integral2, label: "time integral 2 (current billing period)"}
+      - {d: 10, s: Avg, label: "current average"}
+      - {d: 11, s: LastAvg, label: "last average"}
+      - {d: 12, s: Periodical2, label: "periodical value 2"}
+      - {d: 13, s: Periodical3, label: "periodical value 3"}
+      - {d: 14, s: Min2, label: "minimum 2"}
+      - {d: 15, s: Max2, label: "maximum 2"}
+      - {d: 20, s: UnderLimitCount, label: "under limit occurrences"}
+      - {d: 21, s: UnderLimitDuration, label: "under limit duration"}
+      - {d: 22, s: OverLimitCount, label: "over limit occurrences"}
+      - {d: 23, s: OverLimitDuration, label: "over limit duration"}
+      - {d: 24, s: MissingCount, label: "missing data occurrences"}
+      - {d: 25, s: MissingDuration, label: "missing data duration"}
+  gasConversion:  # Table 35
+      - {d: 0, s: "", label: "current value at metering conditions"}
+      - {d: 2, s: Base, label: "current value at base conditions"}
+      - {d: 3, s: Backup, label: "backup value"}
+      - {d: 10, s: Actual, label: "actual value"}
+      - {d: 11, s: Preset, label: "preset value"}
+      - {d: 12, s: Method, label: "calculation method"}
+  gasAnalysis:  # Table 36 (the names are the components)
+      - {d: 8, s: ReferencePressure, label: "reference pressure of gas analysis"}
+      - {d: 9, s: ReferenceTemperature, label: "reference temperature of gas analysis"}
+      - {d: 10, s: SuperiorWobbeIndex, label: "superior Wobbe index, 0 degC"}
+      - {d: 11, s: InferiorWobbeIndex, label: "inferior Wobbe index, 0 degC"}
+      - {d: 12, s: MethaneNumber, label: "methane number"}
+      - {d: 13, s: TotalSulfur, label: "total sulfur"}
+      - {d: 14, s: HydrogenSulfide, label: "hydrogen sulfide"}
+      - {d: 15, s: Mercaptans, label: "mercaptans"}
+      - {d: 16, s: WaterDewPoint, label: "water dew point"}
+      - {d: 17, s: WaterDewPointNormalised, label: "water dew point, outlet or normalised"}
+      - {d: 18, s: HydrocarbonDewPoint, label: "hydrocarbon dew point"}
+      - {d: 19, s: InferiorCalorificValue, label: "inferior calorific value"}
+      - {d: 20, s: Water, label: "water"}
+      - {d: 60, s: Nitrogen, label: "nitrogen"}
+      - {d: 61, s: Hydrogen, label: "hydrogen"}
+      - {d: 62, s: Oxygen, label: "oxygen"}
+      - {d: 63, s: Helium, label: "helium"}
+      - {d: 64, s: Argon, label: "argon"}
+      - {d: 65, s: CarbonMonoxide, label: "carbon monoxide"}
+      - {d: 66, s: CarbonDioxide, label: "carbon dioxide"}
+      - {d: 67, s: Methane, label: "methane"}
+      - {d: 68, s: Ethene, label: "ethene"}
+      - {d: 69, s: Ethane, label: "ethane"}
+      - {d: 70, s: Propene, label: "propene"}
+      - {d: 71, s: Propane, label: "propane"}
+      - {d: 72, s: IsoButane, label: "i-butane"}
+      - {d: 73, s: NButane, label: "n-butane"}
+      - {d: 74, s: NeoPentane, label: "neo-pentane"}
+      - {d: 75, s: IsoPentane, label: "i-pentane"}
+      - {d: 76, s: NPentane, label: "n-pentane"}
+      - {d: 77, s: Hexane, label: "hexane"}
+      - {d: 78, s: HexaneShare, label: "hexane share of higher hydrocarbons"}
+      - {d: 79, s: HexanePlus, label: "hexane plus"}
+      - {d: 80, s: Heptane, label: "heptane"}
+      - {d: 81, s: Octane, label: "octane"}
+      - {d: 82, s: Nonane, label: "nonane"}
+      - {d: 83, s: Decane, label: "decane"}
+      - {d: 84, s: Tetrahydrothiophene, label: "tetrahydrothiophene"}
+  gasIndex:  # EN 13757-1:2021 11.3.4.3.1 Table 32
+      - {d: 0, s: "", label: "index at metering conditions"}
+      - {d: 1, s: "Corrected", label: "index, corrected"}
+      - {d: 2, s: "Base", label: "index at base conditions"}
+      - {d: 3, s: "Redundant", label: "index, redundant (logger)"}
+      - {d: 6, s: "DiffMp1", label: "index difference over measurement period 1, at metering conditions"}
+      - {d: 7, s: "DiffMp1Corrected", label: "index difference over measurement period 1, corrected"}
+      - {d: 8, s: "DiffMp1Base", label: "index difference over measurement period 1, at base conditions"}
+      - {d: 9, s: "LastDiffMp1", label: "last index difference over measurement period 1, at metering conditions"}
+      - {d: 10, s: "LastDiffMp1Corrected", label: "last index difference over measurement period 1, corrected"}
+      - {d: 11, s: "LastDiffMp1Base", label: "last index difference over measurement period 1, at base conditions"}
+      - {d: 12, s: "DiffMp2", label: "index difference over measurement period 2, at metering conditions"}
+      - {d: 13, s: "DiffMp2Corrected", label: "index difference over measurement period 2, corrected"}
+      - {d: 14, s: "DiffMp2Base", label: "index difference over measurement period 2, at base conditions"}
+      - {d: 15, s: "LastDiffMp2", label: "last index difference over measurement period 2, at metering conditions"}
+      - {d: 16, s: "LastDiffMp2Corrected", label: "last index difference over measurement period 2, corrected"}
+      - {d: 17, s: "LastDiffMp2Base", label: "last index difference over measurement period 2, at base conditions"}
+      - {d: 18, s: "DiffMp3", label: "index difference over measurement period 3, at metering conditions"}
+      - {d: 19, s: "DiffMp3Corrected", label: "index difference over measurement period 3, corrected"}
+      - {d: 20, s: "DiffMp3Base", label: "index difference over measurement period 3, at base conditions"}
+      - {d: 21, s: "LastDiffMp3", label: "last index difference over measurement period 3, at metering conditions"}
+      - {d: 22, s: "LastDiffMp3Corrected", label: "last index difference over measurement period 3, corrected"}
+      - {d: 23, s: "LastDiffMp3Base", label: "last index difference over measurement period 3, at base conditions"}
+      - {d: 24, s: "Bp1", label: "historical index, billing period 1, at metering conditions"}
+      - {d: 25, s: "Bp1Corrected", label: "historical index, billing period 1, corrected"}
+      - {d: 26, s: "Bp1Base", label: "historical index, billing period 1, at base conditions"}
+      - {d: 27, s: "DiffBp1", label: "index difference over billing period 1, at metering conditions"}
+      - {d: 28, s: "DiffBp1Corrected", label: "index difference over billing period 1, corrected"}
+      - {d: 29, s: "DiffBp1Base", label: "index difference over billing period 1, at base conditions"}
+      - {d: 30, s: "LastDiffBp1", label: "last index difference over billing period 1, at metering conditions"}
+      - {d: 31, s: "LastDiffBp1Corrected", label: "last index difference over billing period 1, corrected"}
+      - {d: 32, s: "LastDiffBp1Base", label: "last index difference over billing period 1, at base conditions"}
+      - {d: 33, s: "MaxMp1Bp1", label: "maximum index difference over measurement period 1 in Bp1, at metering conditions"}
+      - {d: 34, s: "MaxMp1Bp1Corrected", label: "maximum index difference over measurement period 1 in Bp1, corrected"}
+      - {d: 35, s: "MaxMp1Bp1Base", label: "maximum index difference over measurement period 1 in Bp1, at base conditions"}
+      - {d: 36, s: "MaxMp2Bp1", label: "maximum index difference over measurement period 2 in Bp1, at metering conditions"}
+      - {d: 37, s: "MaxMp2Bp1Corrected", label: "maximum index difference over measurement period 2 in Bp1, corrected"}
+      - {d: 38, s: "MaxMp2Bp1Base", label: "maximum index difference over measurement period 2 in Bp1, at base conditions"}
+      - {d: 39, s: "MaxMp3Bp1", label: "maximum index difference over measurement period 3 in Bp1, at metering conditions"}
+      - {d: 40, s: "MaxMp3Bp1Corrected", label: "maximum index difference over measurement period 3 in Bp1, corrected"}
+      - {d: 41, s: "MaxMp3Bp1Base", label: "maximum index difference over measurement period 3 in Bp1, at base conditions"}
+      - {d: 42, s: "Bp2", label: "historical index, billing period 2, at metering conditions"}
+      - {d: 43, s: "Bp2Corrected", label: "historical index, billing period 2, corrected"}
+      - {d: 44, s: "Bp2Base", label: "historical index, billing period 2, at base conditions"}
+      - {d: 45, s: "DiffBp2", label: "index difference over billing period 2, at metering conditions"}
+      - {d: 46, s: "DiffBp2Corrected", label: "index difference over billing period 2, corrected"}
+      - {d: 47, s: "DiffBp2Base", label: "index difference over billing period 2, at base conditions"}
+      - {d: 48, s: "LastDiffBp2", label: "last index difference over billing period 2, at metering conditions"}
+      - {d: 49, s: "LastDiffBp2Corrected", label: "last index difference over billing period 2, corrected"}
+      - {d: 50, s: "LastDiffBp2Base", label: "last index difference over billing period 2, at base conditions"}
+      - {d: 51, s: "MaxMp1Bp2", label: "maximum index difference over measurement period 1 in Bp2, at metering conditions"}
+      - {d: 52, s: "MaxMp1Bp2Corrected", label: "maximum index difference over measurement period 1 in Bp2, corrected"}
+      - {d: 53, s: "MaxMp1Bp2Base", label: "maximum index difference over measurement period 1 in Bp2, at base conditions"}
+      - {d: 54, s: "MaxMp2Bp2", label: "maximum index difference over measurement period 2 in Bp2, at metering conditions"}
+      - {d: 55, s: "MaxMp2Bp2Corrected", label: "maximum index difference over measurement period 2 in Bp2, corrected"}
+      - {d: 56, s: "MaxMp2Bp2Base", label: "maximum index difference over measurement period 2 in Bp2, at base conditions"}
+      - {d: 57, s: "MaxMp3Bp2", label: "maximum index difference over measurement period 3 in Bp2, at metering conditions"}
+      - {d: 58, s: "MaxMp3Bp2Corrected", label: "maximum index difference over measurement period 3 in Bp2, corrected"}
+      - {d: 59, s: "MaxMp3Bp2Base", label: "maximum index difference over measurement period 3 in Bp2, at base conditions"}
+      - {d: 60, s: "MaxBp1Bp2", label: "maximum index difference over billing period 1 in Bp2, at metering conditions"}
+      - {d: 61, s: "MaxBp1Bp2Corrected", label: "maximum index difference over billing period 1 in Bp2, corrected"}
+      - {d: 62, s: "MaxBp1Bp2Base", label: "maximum index difference over billing period 1 in Bp2, at base conditions"}
+      - {d: 63, s: "Bp3", label: "historical index, billing period 3, at metering conditions"}
+      - {d: 64, s: "Bp3Corrected", label: "historical index, billing period 3, corrected"}
+      - {d: 65, s: "Bp3Base", label: "historical index, billing period 3, at base conditions"}
+      - {d: 66, s: "DiffBp3", label: "index difference over billing period 3, at metering conditions"}
+      - {d: 67, s: "DiffBp3Corrected", label: "index difference over billing period 3, corrected"}
+      - {d: 68, s: "DiffBp3Base", label: "index difference over billing period 3, at base conditions"}
+      - {d: 69, s: "LastDiffBp3", label: "last index difference over billing period 3, at metering conditions"}
+      - {d: 70, s: "LastDiffBp3Corrected", label: "last index difference over billing period 3, corrected"}
+      - {d: 71, s: "LastDiffBp3Base", label: "last index difference over billing period 3, at base conditions"}
+      - {d: 72, s: "MaxMp1Bp3", label: "maximum index difference over measurement period 1 in Bp3, at metering conditions"}
+      - {d: 73, s: "MaxMp1Bp3Corrected", label: "maximum index difference over measurement period 1 in Bp3, corrected"}
+      - {d: 74, s: "MaxMp1Bp3Base", label: "maximum index difference over measurement period 1 in Bp3, at base conditions"}
+      - {d: 75, s: "MaxMp2Bp3", label: "maximum index difference over measurement period 2 in Bp3, at metering conditions"}
+      - {d: 76, s: "MaxMp2Bp3Corrected", label: "maximum index difference over measurement period 2 in Bp3, corrected"}
+      - {d: 77, s: "MaxMp2Bp3Base", label: "maximum index difference over measurement period 2 in Bp3, at base conditions"}
+      - {d: 78, s: "MaxMp3Bp3", label: "maximum index difference over measurement period 3 in Bp3, at metering conditions"}
+      - {d: 79, s: "MaxMp3Bp3Corrected", label: "maximum index difference over measurement period 3 in Bp3, corrected"}
+      - {d: 80, s: "MaxMp3Bp3Base", label: "maximum index difference over measurement period 3 in Bp3, at base conditions"}
+      - {d: 81, s: "Bp4", label: "historical index, billing period 4, at metering conditions"}
+      - {d: 82, s: "Bp4Corrected", label: "historical index, billing period 4, corrected"}
+      - {d: 83, s: "Bp4Base", label: "historical index, billing period 4, at base conditions"}
+      - {d: 84, s: "DiffBp4", label: "index difference over billing period 4, at metering conditions"}
+      - {d: 85, s: "DiffBp4Corrected", label: "index difference over billing period 4, corrected"}
+      - {d: 86, s: "DiffBp4Base", label: "index difference over billing period 4, at base conditions"}
+      - {d: 87, s: "LastDiffBp4", label: "last index difference over billing period 4, at metering conditions"}
+      - {d: 88, s: "LastDiffBp4Corrected", label: "last index difference over billing period 4, corrected"}
+      - {d: 89, s: "LastDiffBp4Base", label: "last index difference over billing period 4, at base conditions"}
+      - {d: 90, s: "MaxMp1Bp4", label: "maximum index difference over measurement period 1 in Bp4, at metering conditions"}
+      - {d: 91, s: "MaxMp1Bp4Corrected", label: "maximum index difference over measurement period 1 in Bp4, corrected"}
+      - {d: 92, s: "MaxMp1Bp4Base", label: "maximum index difference over measurement period 1 in Bp4, at base conditions"}
+      - {d: 93, s: "MaxMp2Bp4", label: "maximum index difference over measurement period 2 in Bp4, at metering conditions"}
+      - {d: 94, s: "MaxMp2Bp4Corrected", label: "maximum index difference over measurement period 2 in Bp4, corrected"}
+      - {d: 95, s: "MaxMp2Bp4Base", label: "maximum index difference over measurement period 2 in Bp4, at base conditions"}
+      - {d: 96, s: "MaxMp3Bp4", label: "maximum index difference over measurement period 3 in Bp4, at metering conditions"}
+      - {d: 97, s: "MaxMp3Bp4Corrected", label: "maximum index difference over measurement period 3 in Bp4, corrected"}
+      - {d: 98, s: "MaxMp3Bp4Base", label: "maximum index difference over measurement period 3 in Bp4, at base conditions"}
+  gasFlow:  # Table 33 (C 43)
+      - {d: 0, s: "", label: "instantaneous"}
+      - {d: 1, s: "Corrected", label: "instantaneous, corrected"}
+      - {d: 2, s: "Base", label: "instantaneous, at base conditions"}
+      - {d: 13, s: "Std", label: "instantaneous, at standard conditions"}
+      - {d: 15, s: "AvgAp1", label: "current average, averaging period 1"}
+      - {d: 16, s: "AvgAp1Corrected", label: "current average, averaging period 1, corrected"}
+      - {d: 17, s: "AvgAp1Base", label: "current average, averaging period 1, at base conditions"}
+      - {d: 18, s: "AvgAp1Std", label: "current average, averaging period 1, at standard conditions"}
+      - {d: 19, s: "LastAvgAp1", label: "last average, averaging period 1"}
+      - {d: 20, s: "LastAvgAp1Corrected", label: "last average, averaging period 1, corrected"}
+      - {d: 21, s: "LastAvgAp1Base", label: "last average, averaging period 1, at base conditions"}
+      - {d: 22, s: "LastAvgAp1Std", label: "last average, averaging period 1, at standard conditions"}
+      - {d: 23, s: "MaxMp2Ap1", label: "maximum of last averages in measurement period 2, averaging period 1"}
+      - {d: 24, s: "MaxMp2Ap1Corrected", label: "maximum of last averages in measurement period 2, averaging period 1, corrected"}
+      - {d: 25, s: "MaxMp2Ap1Base", label: "maximum of last averages in measurement period 2, averaging period 1, at base conditions"}
+      - {d: 26, s: "MaxMp2Ap1Std", label: "maximum of last averages in measurement period 2, averaging period 1, at standard conditions"}
+      - {d: 27, s: "MaxMp3Ap1", label: "maximum of last averages in measurement period 3, averaging period 1"}
+      - {d: 28, s: "MaxMp3Ap1Corrected", label: "maximum of last averages in measurement period 3, averaging period 1, corrected"}
+      - {d: 29, s: "MaxMp3Ap1Base", label: "maximum of last averages in measurement period 3, averaging period 1, at base conditions"}
+      - {d: 30, s: "MaxMp3Ap1Std", label: "maximum of last averages in measurement period 3, averaging period 1, at standard conditions"}
+      - {d: 31, s: "MaxBp1Ap1", label: "maximum of last averages in billing period 1, averaging period 1"}
+      - {d: 32, s: "MaxBp1Ap1Corrected", label: "maximum of last averages in billing period 1, averaging period 1, corrected"}
+      - {d: 33, s: "MaxBp1Ap1Base", label: "maximum of last averages in billing period 1, averaging period 1, at base conditions"}
+      - {d: 34, s: "MaxBp1Ap1Std", label: "maximum of last averages in billing period 1, averaging period 1, at standard conditions"}
+      - {d: 35, s: "AvgAp2", label: "current average, averaging period 2"}
+      - {d: 36, s: "AvgAp2Corrected", label: "current average, averaging period 2, corrected"}
+      - {d: 37, s: "AvgAp2Base", label: "current average, averaging period 2, at base conditions"}
+      - {d: 38, s: "AvgAp2Std", label: "current average, averaging period 2, at standard conditions"}
+      - {d: 39, s: "LastAvgAp2", label: "last average, averaging period 2"}
+      - {d: 40, s: "LastAvgAp2Corrected", label: "last average, averaging period 2, corrected"}
+      - {d: 41, s: "LastAvgAp2Base", label: "last average, averaging period 2, at base conditions"}
+      - {d: 42, s: "LastAvgAp2Std", label: "last average, averaging period 2, at standard conditions"}
+      - {d: 43, s: "MaxMp2Ap2", label: "maximum of last averages in measurement period 2, averaging period 2"}
+      - {d: 44, s: "MaxMp2Ap2Corrected", label: "maximum of last averages in measurement period 2, averaging period 2, corrected"}
+      - {d: 45, s: "MaxMp2Ap2Base", label: "maximum of last averages in measurement period 2, averaging period 2, at base conditions"}
+      - {d: 46, s: "MaxMp2Ap2Std", label: "maximum of last averages in measurement period 2, averaging period 2, at standard conditions"}
+      - {d: 47, s: "MaxMp3Ap2", label: "maximum of last averages in measurement period 3, averaging period 2"}
+      - {d: 48, s: "MaxMp3Ap2Corrected", label: "maximum of last averages in measurement period 3, averaging period 2, corrected"}
+      - {d: 49, s: "MaxMp3Ap2Base", label: "maximum of last averages in measurement period 3, averaging period 2, at base conditions"}
+      - {d: 50, s: "MaxMp3Ap2Std", label: "maximum of last averages in measurement period 3, averaging period 2, at standard conditions"}
+      - {d: 51, s: "MaxBp1Ap2", label: "maximum of last averages in billing period 1, averaging period 2"}
+      - {d: 52, s: "MaxBp1Ap2Corrected", label: "maximum of last averages in billing period 1, averaging period 2, corrected"}
+      - {d: 53, s: "MaxBp1Ap2Base", label: "maximum of last averages in billing period 1, averaging period 2, at base conditions"}
+      - {d: 54, s: "MaxBp1Ap2Std", label: "maximum of last averages in billing period 1, averaging period 2, at standard conditions"}
+      - {d: 55, s: "AvgAp3", label: "current average, averaging period 3"}
+      - {d: 56, s: "AvgAp3Corrected", label: "current average, averaging period 3, corrected"}
+      - {d: 57, s: "AvgAp3Base", label: "current average, averaging period 3, at base conditions"}
+      - {d: 58, s: "AvgAp3Std", label: "current average, averaging period 3, at standard conditions"}
+      - {d: 59, s: "LastAvgAp3", label: "last average, averaging period 3"}
+      - {d: 60, s: "LastAvgAp3Corrected", label: "last average, averaging period 3, corrected"}
+      - {d: 61, s: "LastAvgAp3Base", label: "last average, averaging period 3, at base conditions"}
+      - {d: 62, s: "LastAvgAp3Std", label: "last average, averaging period 3, at standard conditions"}
+      - {d: 63, s: "AvgAp4", label: "current average, averaging period 4"}
+      - {d: 64, s: "AvgAp4Corrected", label: "current average, averaging period 4, corrected"}
+      - {d: 65, s: "AvgAp4Base", label: "current average, averaging period 4, at base conditions"}
+      - {d: 66, s: "AvgAp4Std", label: "current average, averaging period 4, at standard conditions"}
+      - {d: 67, s: "LastAvgAp4", label: "last average, averaging period 4"}
+      - {d: 68, s: "LastAvgAp4Corrected", label: "last average, averaging period 4, corrected"}
+      - {d: 69, s: "LastAvgAp4Base", label: "last average, averaging period 4, at base conditions"}
+      - {d: 70, s: "LastAvgAp4Std", label: "last average, averaging period 4, at standard conditions"}
+  gasProcess:  # Table 34 (C 41, 42, 44-49)
+      - {d: 0, s: "", label: "instantaneous"}
+      - {d: 2, s: "Base", label: "instantaneous, at base conditions"}
+      - {d: 3, s: "Backup", label: "backup value"}
+      - {d: 10, s: "Actual", label: "actual value"}
+      - {d: 11, s: "Preset", label: "preset value"}
+      - {d: 13, s: "Std", label: "instantaneous, at standard conditions"}
+      - {d: 15, s: "AvgPi1", label: "average, current interval, process interval 1"}
+      - {d: 16, s: "AvgPi1Base", label: "average, current interval, process interval 1, at base conditions"}
+      - {d: 17, s: "AvgPi1Std", label: "average, current interval, process interval 1, at standard conditions"}
+      - {d: 18, s: "MinPi1", label: "minimum, current interval, process interval 1"}
+      - {d: 19, s: "MinPi1Base", label: "minimum, current interval, process interval 1, at base conditions"}
+      - {d: 20, s: "MinPi1Std", label: "minimum, current interval, process interval 1, at standard conditions"}
+      - {d: 21, s: "MaxPi1", label: "maximum, current interval, process interval 1"}
+      - {d: 22, s: "MaxPi1Base", label: "maximum, current interval, process interval 1, at base conditions"}
+      - {d: 23, s: "MaxPi1Std", label: "maximum, current interval, process interval 1, at standard conditions"}
+      - {d: 24, s: "LastAvgPi1", label: "average, last interval, process interval 1"}
+      - {d: 25, s: "LastAvgPi1Base", label: "average, last interval, process interval 1, at base conditions"}
+      - {d: 26, s: "LastAvgPi1Std", label: "average, last interval, process interval 1, at standard conditions"}
+      - {d: 27, s: "LastMinPi1", label: "minimum, last interval, process interval 1"}
+      - {d: 28, s: "LastMinPi1Base", label: "minimum, last interval, process interval 1, at base conditions"}
+      - {d: 29, s: "LastMinPi1Std", label: "minimum, last interval, process interval 1, at standard conditions"}
+      - {d: 30, s: "LastMaxPi1", label: "maximum, last interval, process interval 1"}
+      - {d: 31, s: "LastMaxPi1Base", label: "maximum, last interval, process interval 1, at base conditions"}
+      - {d: 32, s: "LastMaxPi1Std", label: "maximum, last interval, process interval 1, at standard conditions"}
+      - {d: 33, s: "AvgPi2", label: "average, current interval, process interval 2"}
+      - {d: 34, s: "AvgPi2Base", label: "average, current interval, process interval 2, at base conditions"}
+      - {d: 35, s: "AvgPi2Std", label: "average, current interval, process interval 2, at standard conditions"}
+      - {d: 36, s: "MinPi2", label: "minimum, current interval, process interval 2"}
+      - {d: 37, s: "MinPi2Base", label: "minimum, current interval, process interval 2, at base conditions"}
+      - {d: 38, s: "MinPi2Std", label: "minimum, current interval, process interval 2, at standard conditions"}
+      - {d: 39, s: "MaxPi2", label: "maximum, current interval, process interval 2"}
+      - {d: 40, s: "MaxPi2Base", label: "maximum, current interval, process interval 2, at base conditions"}
+      - {d: 41, s: "MaxPi2Std", label: "maximum, current interval, process interval 2, at standard conditions"}
+      - {d: 42, s: "LastAvgPi2", label: "average, last interval, process interval 2"}
+      - {d: 43, s: "LastAvgPi2Base", label: "average, last interval, process interval 2, at base conditions"}
+      - {d: 44, s: "LastAvgPi2Std", label: "average, last interval, process interval 2, at standard conditions"}
+      - {d: 45, s: "LastMinPi2", label: "minimum, last interval, process interval 2"}
+      - {d: 46, s: "LastMinPi2Base", label: "minimum, last interval, process interval 2, at base conditions"}
+      - {d: 47, s: "LastMinPi2Std", label: "minimum, last interval, process interval 2, at standard conditions"}
+      - {d: 48, s: "LastMaxPi2", label: "maximum, last interval, process interval 2"}
+      - {d: 49, s: "LastMaxPi2Base", label: "maximum, last interval, process interval 2, at base conditions"}
+      - {d: 50, s: "LastMaxPi2Std", label: "maximum, last interval, process interval 2, at standard conditions"}
+      - {d: 51, s: "AvgPi3", label: "average, current interval, process interval 3"}
+      - {d: 52, s: "AvgPi3Base", label: "average, current interval, process interval 3, at base conditions"}
+      - {d: 53, s: "AvgPi3Std", label: "average, current interval, process interval 3, at standard conditions"}
+      - {d: 54, s: "MinPi3", label: "minimum, current interval, process interval 3"}
+      - {d: 55, s: "MinPi3Base", label: "minimum, current interval, process interval 3, at base conditions"}
+      - {d: 56, s: "MinPi3Std", label: "minimum, current interval, process interval 3, at standard conditions"}
+      - {d: 57, s: "MaxPi3", label: "maximum, current interval, process interval 3"}
+      - {d: 58, s: "MaxPi3Base", label: "maximum, current interval, process interval 3, at base conditions"}
+      - {d: 59, s: "MaxPi3Std", label: "maximum, current interval, process interval 3, at standard conditions"}
+      - {d: 60, s: "LastAvgPi3", label: "average, last interval, process interval 3"}
+      - {d: 61, s: "LastAvgPi3Base", label: "average, last interval, process interval 3, at base conditions"}
+      - {d: 62, s: "LastAvgPi3Std", label: "average, last interval, process interval 3, at standard conditions"}
+      - {d: 63, s: "LastMinPi3", label: "minimum, last interval, process interval 3"}
+      - {d: 64, s: "LastMinPi3Base", label: "minimum, last interval, process interval 3, at base conditions"}
+      - {d: 65, s: "LastMinPi3Std", label: "minimum, last interval, process interval 3, at standard conditions"}
+      - {d: 66, s: "LastMaxPi3", label: "maximum, last interval, process interval 3"}
+      - {d: 67, s: "LastMaxPi3Base", label: "maximum, last interval, process interval 3, at base conditions"}
+      - {d: 68, s: "LastMaxPi3Std", label: "maximum, last interval, process interval 3, at standard conditions"}
+      - {d: 69, s: "AvgPi4", label: "average, current interval, process interval 4"}
+      - {d: 70, s: "AvgPi4Base", label: "average, current interval, process interval 4, at base conditions"}
+      - {d: 71, s: "AvgPi4Std", label: "average, current interval, process interval 4, at standard conditions"}
+      - {d: 72, s: "MinPi4", label: "minimum, current interval, process interval 4"}
+      - {d: 73, s: "MinPi4Base", label: "minimum, current interval, process interval 4, at base conditions"}
+      - {d: 74, s: "MinPi4Std", label: "minimum, current interval, process interval 4, at standard conditions"}
+      - {d: 75, s: "MaxPi4", label: "maximum, current interval, process interval 4"}
+      - {d: 76, s: "MaxPi4Base", label: "maximum, current interval, process interval 4, at base conditions"}
+      - {d: 77, s: "MaxPi4Std", label: "maximum, current interval, process interval 4, at standard conditions"}
+      - {d: 78, s: "LastAvgPi4", label: "average, last interval, process interval 4"}
+      - {d: 79, s: "LastAvgPi4Base", label: "average, last interval, process interval 4, at base conditions"}
+      - {d: 80, s: "LastAvgPi4Std", label: "average, last interval, process interval 4, at standard conditions"}
+      - {d: 81, s: "LastMinPi4", label: "minimum, last interval, process interval 4"}
+      - {d: 82, s: "LastMinPi4Base", label: "minimum, last interval, process interval 4, at base conditions"}
+      - {d: 83, s: "LastMinPi4Std", label: "minimum, last interval, process interval 4, at standard conditions"}
+      - {d: 84, s: "LastMaxPi4", label: "maximum, last interval, process interval 4"}
+      - {d: 85, s: "LastMaxPi4Base", label: "maximum, last interval, process interval 4, at base conditions"}
+      - {d: 86, s: "LastMaxPi4Std", label: "maximum, last interval, process interval 4, at standard conditions"}
+      - {d: 87, s: "AvgSinceEvent", label: "average since the last event"}
+      - {d: 88, s: "AvgSinceEventBase", label: "average since the last event, at base conditions"}
+      - {d: 89, s: "AvgSinceEventStd", label: "average since the last event, at standard conditions"}
+      - {d: 90, s: "AvgBetweenEvents", label: "average between the last two events"}
+      - {d: 91, s: "AvgBetweenEventsBase", label: "average between the last two events, at base conditions"}
+      - {d: 92, s: "AvgBetweenEventsStd", label: "average between the last two events, at standard conditions"}
+
+# E rules: rates (0 total, 1-n rate n); zero (E 0 only, 11.3.4.4.3,
+# 11.3.4.4.4); gasAverages (Tables 38 and 40).
+mediaE:
+  rates9: "1-9"     # Tables 17, 25, 47
+  rates63: "1-63"   # Tables 37, 39
+  gasAverages:
+      - {e: 0, s: "", label: "process independent current value"}
+      - {e: 1, s: Weighted, label: "weighted value"}
+      - {e: 11, s: AvgAp1, label: "average, current interval, averaging period 1"}
+      - {e: 12, s: LastAvgAp1, label: "average, last interval, averaging period 1"}
+      - {e: 13, s: AvgAp2, label: "average, current interval, averaging period 2"}
+      - {e: 14, s: LastAvgAp2, label: "average, last interval, averaging period 2"}
+      - {e: 15, s: AvgAp3, label: "average, current interval, averaging period 3"}
+      - {e: 16, s: LastAvgAp3, label: "average, last interval, averaging period 3"}
+      - {e: 17, s: AvgAp4, label: "average, current interval, averaging period 4"}
+      - {e: 18, s: LastAvgAp4, label: "average, last interval, averaging period 4"}
+      - {e: 19, s: AvgAp5, label: "average, current interval, averaging period 5"}
+      - {e: 20, s: LastAvgAp5, label: "average, last interval, averaging period 5"}
+      - {e: 21, s: AvgAp6, label: "average, current interval, averaging period 6"}
+      - {e: 22, s: LastAvgAp6, label: "average, last interval, averaging period 6"}
+      - {e: 23, s: AvgAp7, label: "average, current interval, averaging period 7"}
+      - {e: 24, s: LastAvgAp7, label: "average, last interval, averaging period 7"}
+      - {e: 25, s: AvgAp8, label: "average, current interval, averaging period 8"}
+      - {e: 26, s: LastAvgAp8, label: "average, last interval, averaging period 8"}
+      - {e: 27, s: AvgSinceEvent, label: "average, averaging period 9 (since the last event)"}
+      - {e: 28, s: AvgBetweenEvents, label: "average, averaging period 10 (between the last two events)"}
