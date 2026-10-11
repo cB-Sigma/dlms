@@ -101,7 +101,7 @@ const (
 	ReadyForReconnection uint8 = 2
 )
 
-// DisconnectControl is class 70: the supply switch. ControlMode (0 to 6)
+// DisconnectControl is class 70: the supply switch. ControlMode (0 to 7)
 // says which transitions are allowed; mode 0 keeps the switch connected
 // and refuses the remote methods. OutputState follows the state
 // (connected means the supply is on). OnChange, when set, is told the new
@@ -109,10 +109,14 @@ const (
 // restored and the method answers with the error).
 //
 // Our reading of the modes: remote disconnect works from connected and
-// from ready in modes 1 to 6; remote reconnect leads to ready in modes 1,
-// 3 and 5 and straight to connected in 2, 4 and 6; manual reconnect (ready
-// to connected) works in 1 to 6, manual disconnect in 1, 2 and 5, local
-// disconnect in 1 to 6 and local reconnect in 5 and 6.
+// from ready in modes 1 to 7; remote reconnect leads to ready in modes 1,
+// 3, 5 and 6 and straight to connected in 2, 4 and 7, and in mode 7 it
+// also closes the switch from ready; manual reconnect (ready to connected)
+// works in 1 to 7, manual disconnect in 1, 2 and 5, local disconnect in 1
+// to 7 and local reconnect in 5, 6 and 7. The grouping of the remote
+// reconnect transitions per mode was checked against the control mode
+// lists in Gurux's sources (ControlMode in Gurux.DLMS.Python and .Net),
+// which put mode 6 with 1, 3 and 5 and define mode 7.
 type DisconnectControl struct {
 	sync.Mutex
 	LN           string
@@ -145,7 +149,7 @@ func (o *DisconnectControl) Set(a int8, v *axdr.DlmsData, sel *Selector) error {
 		if err != nil {
 			return err
 		}
-		if mode > 6 {
+		if mode > 7 {
 			return OtherReason
 		}
 	}
@@ -205,23 +209,27 @@ func (o *DisconnectControl) move(allowed []uint8, to uint8, from ...uint8) error
 
 // RemoteDisconnect opens the switch from connected or ready.
 func (o *DisconnectControl) RemoteDisconnect() error {
-	return o.move([]uint8{1, 2, 3, 4, 5, 6}, Disconnected, Connected, ReadyForReconnection)
+	return o.move([]uint8{1, 2, 3, 4, 5, 6, 7}, Disconnected, Connected, ReadyForReconnection)
 }
 
-// RemoteReconnect arms (modes 1, 3, 5) or closes (modes 2, 4, 6) the switch.
+// RemoteReconnect arms (modes 1, 3, 5, 6) or closes (modes 2, 4, 7) the
+// switch; in mode 7 it closes an armed switch too.
 func (o *DisconnectControl) RemoteReconnect() error {
 	o.Lock()
 	mode := o.ControlMode
 	o.Unlock()
-	if modeIn(mode, 2, 4, 6) {
-		return o.move([]uint8{2, 4, 6}, Connected, Disconnected)
+	switch {
+	case mode == 7:
+		return o.move([]uint8{7}, Connected, Disconnected, ReadyForReconnection)
+	case modeIn(mode, 2, 4):
+		return o.move([]uint8{2, 4}, Connected, Disconnected)
 	}
-	return o.move([]uint8{1, 3, 5}, ReadyForReconnection, Disconnected)
+	return o.move([]uint8{1, 3, 5, 6}, ReadyForReconnection, Disconnected)
 }
 
 // ManualReconnect is the customer closing an armed switch.
 func (o *DisconnectControl) ManualReconnect() error {
-	return o.move([]uint8{1, 2, 3, 4, 5, 6}, Connected, ReadyForReconnection)
+	return o.move([]uint8{1, 2, 3, 4, 5, 6, 7}, Connected, ReadyForReconnection)
 }
 
 // ManualDisconnect is the customer opening the switch.
@@ -231,10 +239,10 @@ func (o *DisconnectControl) ManualDisconnect() error {
 
 // LocalDisconnect is the meter opening the switch itself (a limiter, say).
 func (o *DisconnectControl) LocalDisconnect() error {
-	return o.move([]uint8{1, 2, 3, 4, 5, 6}, ReadyForReconnection, Connected)
+	return o.move([]uint8{1, 2, 3, 4, 5, 6, 7}, ReadyForReconnection, Connected)
 }
 
 // LocalReconnect is the meter closing the switch itself.
 func (o *DisconnectControl) LocalReconnect() error {
-	return o.move([]uint8{5, 6}, Connected, ReadyForReconnection)
+	return o.move([]uint8{5, 6, 7}, Connected, ReadyForReconnection)
 }

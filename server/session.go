@@ -15,6 +15,7 @@ import (
 	"gitlab.com/circutor-library/gosem/pkg/axdr"
 
 	"github.com/cB-Sigma/dlms/cosem"
+	"github.com/cB-Sigma/dlms/gateway"
 )
 
 type session struct {
@@ -36,6 +37,8 @@ type session struct {
 	seenIC     map[bool]bool
 	initPolicy byte // the protection of the initiate request (and of the release)
 	noAnswer   bool // an unconfirmed association: nothing is answered
+	inSigned   bool // running the content of a general-signing request
+	resp       *cosem.Responder
 
 	// Block transfer state.
 	getOut    []byte // GET data still to send
@@ -120,23 +123,71 @@ const (
 	tagGeneralDed = 0xDC
 )
 
+// responder is the cosem view of the association's keys from the server's
+// side (general ciphering, signing, third parties, compression).
+func (ss *session) responder() *cosem.Responder {
+	if ss.resp != nil {
+		return ss.resp
+	}
+	a := ss.a
+	r := &cosem.Responder{Suite: cosem.Suite(a.Suite), SystemTitle: ss.s.SystemTitle, Key: a.Key, AuthKey: a.AuthKey,
+		BroadcastKey: a.BroadcastKey, MasterKey: a.MasterKey, SignKey: a.SigningKey, KAKey: a.KAKey,
+		ClientSignKey: a.ClientKey, ClientKAKey: a.ClientKAKey, CompressAnswers: a.CompressAnswers,
+		ThirdParties: a.ThirdParties}
+	if p, err := a.Compression.Params(); err == nil {
+		r.Compression = p
+	}
+	ss.resp = r
+	return r
+}
+
 // protected removes the protection of a request, runs it and protects the
-// answer in the same form. Without protection it runs plain requests.
+// answer in the same form. Without protection it runs plain requests. A
+// general-signing request is checked first, and its answer signed.
 func (ss *session) protected(apdu []byte) []byte {
 	a := ss.a
+	if apdu[0] == cosem.TagGeneralSigning && !ss.inSigned {
+		return ss.signedRequest(apdu)
+	}
+	if a.Signing && !ss.inSigned {
+		// General-signing is required on every request.
+		return errNotAllowed
+	}
 	if a.Policy == 0 {
-		if _, p := protectedRequests[apdu[0]]; p || apdu[0] == tagGeneralGlo || apdu[0] == tagGeneralDed {
+		if _, p := protectedRequests[apdu[0]]; p || apdu[0] == tagGeneralGlo || apdu[0] == tagGeneralDed || apdu[0] == cosem.TagGeneralCiphering {
 			return errNotAllowed
 		}
 		return ss.dispatch(apdu)
 	}
+	r := ss.responder()
 	var (
 		content []byte
 		ded     bool
 		general bool
 		want    byte
+		tx      *cosem.Transaction
+		plain   []byte
+		ic      uint32
+		err     error
+		comp    bool
+		// inPrefix is a gateway prefix found inside the protection (some
+		// clients cipher it with the APDU): the answer carries one the
+		// same way.
+		inPrefix *gateway.Prefix
 	)
 	switch {
+	case apdu[0] == cosem.TagGeneralCiphering:
+		plain, ic, tx, err = r.OpenGeneral(apdu, ss.clientST)
+		if err != nil || len(plain) == 0 {
+			ss.s.logf("client %d: a general-ciphering request does not open: %v", ss.client, err)
+			return errDeciphering
+		}
+		general, comp = true, tx.Compressed
+		plain, inPrefix = innerPrefix(plain)
+		if tx.Broadcast {
+			ss.broadcast(plain, ic)
+			return nil
+		}
 	case apdu[0] == tagGeneralGlo || apdu[0] == tagGeneralDed:
 		st, c, ok := decodeGeneralGloDed(apdu)
 		if !ok || !bytes.Equal(st, ss.clientST) {
@@ -155,35 +206,29 @@ func (ss *session) protected(apdu []byte) []byte {
 		}
 		content, ded, want = apdu[1+sz:], p.ded, p.plain
 	}
-	key := a.Key
-	if ded {
-		if ss.dedKey == nil {
-			return errNotAllowed
+	if tx == nil {
+		key := a.Key
+		if ded {
+			if ss.dedKey == nil {
+				return errNotAllowed
+			}
+			if len(content) > 0 && content[0]&cosem.SecBroadcastKey != 0 {
+				return errDeciphering // the dedicated key has no key set
+			}
+			key = ss.dedKey
 		}
-		key = a.Key
-		key = ss.dedKey
-	}
-	var bkey []byte
-	if !ded {
-		bkey = a.BroadcastKey
-	}
-	plain, ic, err := cosem.UnprotectKeys(cosem.Suite(a.Suite), key, bkey, a.AuthKey, ss.clientST, content, nil)
-	if err != nil || len(plain) == 0 || (want != 0 && plain[0] != want) {
-		ss.s.logf("client %d: a protected request does not open: %v", ss.client, err)
-		return errDeciphering
-	}
-	if len(content) > 0 && content[0]&cosem.SecBroadcastKey != 0 {
-		// Under the broadcast key: unconfirmed services only, never answered.
-		ss.s.mu.Lock()
-		fresh := ic > ss.s.bcast
-		if fresh {
-			ss.s.bcast = ic
+		plain, ic, comp, err = r.OpenGloDed(key, ss.clientST, content, general)
+		if err == nil {
+			plain, inPrefix = innerPrefix(plain)
 		}
-		ss.s.mu.Unlock()
-		if fresh {
-			ss.dispatch(plain)
+		if err != nil || len(plain) == 0 || (want != 0 && plain[0] != want) {
+			ss.s.logf("client %d: a protected request does not open: %v", ss.client, err)
+			return errDeciphering
 		}
-		return nil
+		if !ded && len(content) > 0 && content[0]&cosem.SecBroadcastKey != 0 {
+			ss.broadcast(plain, ic)
+			return nil
+		}
 	}
 	if ss.seenIC == nil {
 		ss.seenIC, ss.lastIC = map[bool]bool{}, map[bool]uint32{}
@@ -194,8 +239,21 @@ func (ss *session) protected(apdu []byte) []byte {
 	}
 	ss.seenIC[ded], ss.lastIC[ded] = true, ic
 	ss.noteIC(ic)
+	// A third party's layers inside the client's (general forms only).
+	var tp *cosem.ThirdPartyTransaction
+	if general && r.IsThirdParty(plain) {
+		inner, t, err := r.OpenThirdParty(plain)
+		if err != nil {
+			ss.s.logf("client %d: a third party's layer does not open: %v", ss.client, err)
+			ss.s.count(func(st *Stats) { st.BadSignatures++ })
+			return errDeciphering
+		}
+		plain, tp = inner, t
+	}
 	ss.s.count(func(st *Stats) {
 		switch {
+		case tx != nil:
+			st.GeneralCiphering++
 		case general && ded:
 			st.GeneralDed++
 		case general:
@@ -203,17 +261,113 @@ func (ss *session) protected(apdu []byte) []byte {
 		default:
 			st.ServiceSpecific++
 		}
+		if comp {
+			st.Compressed++
+		}
+		if tp != nil {
+			st.ThirdParty++
+		}
 	})
 	resp := ss.dispatch(plain)
 	if len(resp) == 0 || resp[0] == 0xD8 {
 		return resp
 	}
-	policy := a.Policy
-	out, err := ss.protect(resp, policy, ded, general)
+	if inPrefix != nil {
+		p := gateway.Prefix{Header: gateway.Response, Network: inPrefix.Network, Address: inPrefix.Address}
+		if resp, err = gateway.Encode(p, resp); err != nil {
+			return exception(2, 0)
+		}
+	}
+	if tp != nil {
+		if resp, err = r.AnswerThirdParty(tp, resp); err != nil {
+			ss.s.logf("client %d: protecting an answer for the third party: %v", ss.client, err)
+			return exception(2, 0)
+		}
+	}
+	var out []byte
+	if tx != nil {
+		out, err = r.SealGeneral(tx, a.Policy, ss.s.nextIC(), resp)
+	} else {
+		out, err = ss.protect(resp, a.Policy, ded, general)
+	}
 	if err != nil {
 		ss.s.logf("client %d: protecting an answer: %v", ss.client, err)
 		return exception(2, 0)
 	}
+	return out
+}
+
+// innerPrefix removes a gateway prefix from a deciphered request.
+// IEC 62056-5-3:2023 annex C keeps the prefix outside the protection;
+// some clients (gurux-dlms 1.0.203 for Python through a concentrator)
+// cipher it with the APDU, so it is taken here too.
+func innerPrefix(plain []byte) ([]byte, *gateway.Prefix) {
+	if len(plain) == 0 || plain[0] != gateway.Request {
+		return plain, nil
+	}
+	p, rest, ok, err := gateway.Parse(plain)
+	if !ok || err != nil || len(rest) == 0 {
+		return plain, nil
+	}
+	return rest, &p
+}
+
+// plainTag is the service tag of an answer, under a gateway prefix if it
+// has one.
+func plainTag(resp []byte) byte {
+	if len(resp) > 0 && resp[0] == gateway.Response {
+		if _, rest, ok, err := gateway.Parse(resp); ok && err == nil && len(rest) > 0 {
+			return rest[0]
+		}
+	}
+	if len(resp) == 0 {
+		return 0
+	}
+	return resp[0]
+}
+
+// broadcast runs a request under the global broadcast key: unconfirmed
+// services only, never answered, a counter not above the last one taken
+// dropped.
+func (ss *session) broadcast(plain []byte, ic uint32) {
+	if len(plain) < 3 || plain[2]&0x40 != 0 {
+		return
+	}
+	ss.s.mu.Lock()
+	fresh := ic > ss.s.bcast
+	if fresh {
+		ss.s.bcast = ic
+	}
+	ss.s.mu.Unlock()
+	if fresh {
+		ss.dispatch(plain)
+	}
+}
+
+// signedRequest checks a general-signing request with the client's key,
+// runs its content (plain or protected) and signs the answer.
+func (ss *session) signedRequest(apdu []byte) []byte {
+	if ss.a.ClientKey == nil {
+		return errNotAllowed
+	}
+	content, tx, err := ss.responder().OpenSigned(apdu, ss.clientST)
+	if err != nil {
+		ss.s.logf("client %d: a signed request: %v", ss.client, err)
+		ss.s.count(func(st *Stats) { st.BadSignatures++ })
+		return errDeciphering
+	}
+	ss.inSigned = true
+	resp := ss.protected(content)
+	ss.inSigned = false
+	if len(resp) == 0 || resp[0] == 0xD8 {
+		return resp
+	}
+	out, err := ss.responder().Sign(tx, resp)
+	if err != nil {
+		ss.s.logf("client %d: signing an answer: %v", ss.client, err)
+		return exception(2, 0)
+	}
+	ss.s.count(func(st *Stats) { st.Signed++ })
 	return out
 }
 
@@ -242,7 +396,15 @@ func (ss *session) protect(resp []byte, policy byte, ded, general bool) ([]byte,
 	} else {
 		ic = ss.s.nextIC()
 	}
-	p, err := cosem.Protect(cosem.Suite(a.Suite), policy, key, a.AuthKey, ss.s.SystemTitle, ic, resp)
+	var (
+		p   []byte
+		err error
+	)
+	if general {
+		p, err = ss.responder().SealGloDed(policy, key, ic, resp)
+	} else {
+		p, err = cosem.Protect(cosem.Suite(a.Suite), policy, key, a.AuthKey, ss.s.SystemTitle, ic, resp)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -253,9 +415,9 @@ func (ss *session) protect(resp []byte, policy byte, ded, general bool) ([]byte,
 		}
 		return encodeGeneralGloDed(tag, ss.s.SystemTitle, p), nil
 	}
-	tag, ok := gloResponse[resp[0]]
+	tag, ok := gloResponse[plainTag(resp)]
 	if ded {
-		tag, ok = dedResponse[resp[0]]
+		tag, ok = dedResponse[plainTag(resp)]
 	}
 	if !ok {
 		return nil, fmt.Errorf("answer tag %#x has no protected form", resp[0])

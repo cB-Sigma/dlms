@@ -151,8 +151,11 @@ func (e *RejectError) Unwrap() error { return ErrRejected }
 
 // rejectError builds the error for a received FRMR information field. A
 // field too short to read still ends the link, reported as unreadable.
-func rejectError(info []byte) error {
-	r, err := DecodeFrameReject(info, 8)
+func rejectError(info []byte) error { return rejectErrorModulo(info, Modulo8) }
+
+// rejectErrorModulo is rejectError for a link numbered modulo 8 or 128.
+func rejectErrorModulo(info []byte, modulo int) error {
+	r, err := DecodeFrameReject(info, modulo)
 	if err != nil {
 		return fmt.Errorf("%w: reason unreadable (% X): %v", ErrRejected, info, err)
 	}

@@ -133,6 +133,7 @@ var names = map[string]string{
 	"0.0.15.0.0.255":   "billingDates",
 	"0.0.15.0.2.255":   "imageActivationSchedule",
 	"0.0.13.0.0.255":   "activityCalendar",
+	"0.0.11.0.0.255":   "specialDaysTable",
 	"0.0.10.0.100.255": "tariffScripts",
 	"0.0.10.0.1.255":   "billingScripts",
 	"0.0.10.0.107.255": "imageActivationScripts",

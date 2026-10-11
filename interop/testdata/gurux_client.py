@@ -101,6 +101,17 @@ def new_client(args, client_address, auth, security):
         # Gurux uses general-glo (or general-ded) ciphering whenever general
         # protection is negotiated; without it, service-specific ciphering.
         c.proposedConformance &= ~Conformance.GENERAL_PROTECTION
+    if args.gateway:
+        # A meter behind a data concentrator: the gateway prefix with the
+        # network ID and physical device address.
+        from gurux_dlms import GXDLMSGateway
+        network, address = args.gateway.split(":")
+        g = GXDLMSGateway()
+        g.networkId = int(network)
+        g.physicalDeviceAddress = bytes.fromhex(address)
+        c.gateway = g
+    if args.server_address:
+        c.serverAddress = args.server_address
     return c
 
 
@@ -207,6 +218,8 @@ def main():
     p.add_argument("--gbt", action="store_true", help="propose general block transfer")
     p.add_argument("--set", action="append", default=[], help="obis:hex: write an octet string to a data object's value and read it back")
     p.add_argument("--action", action="append", default=[], help="class:obis:method:int8")
+    p.add_argument("--gateway", default="", help="network:address-hex of a meter behind a data concentrator")
+    p.add_argument("--server-address", type=int, default=0, help="the server SAP (a concentrator's logical device)")
     args = p.parse_args()
 
     auth, security = AUTH[args.auth], SECURITY[args.security]

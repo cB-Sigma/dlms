@@ -37,6 +37,7 @@ import (
 	"gitlab.com/circutor-library/gosem/pkg/axdr"
 
 	"github.com/cB-Sigma/dlms/classes"
+	"github.com/cB-Sigma/dlms/cosem"
 	"github.com/cB-Sigma/dlms/hdlc"
 )
 
@@ -68,9 +69,34 @@ type Association struct {
 	Key, AuthKey []byte
 	BroadcastKey []byte
 	// SigningKey is the server's key and ClientKey the client's public key
-	// (mechanism 7).
+	// (mechanism 7, general signing, and the ephemeral keys of one-pass
+	// agreement in general ciphering).
 	SigningKey *ecdsa.PrivateKey
 	ClientKey  *ecdsa.PublicKey
+	// Signing requires general-signing on every request after the AARQ;
+	// the answers are signed with SigningKey. A signed request is accepted
+	// and answered signed without it too.
+	Signing bool
+	// General ciphering (IEC 62056-5-3:2023 5.5): MasterKey is the KEK of
+	// wrapped content keys; KAKey is the server's key agreement key and
+	// ClientKAKey the client's (one-pass and static agreed keys). Requests
+	// in general ciphering are answered with a fresh key of the kind the
+	// request used, repeating its transaction-id.
+	MasterKey   []byte
+	KAKey       *ecdsa.PrivateKey
+	ClientKAKey *ecdsa.PublicKey
+	// Compression is the server's V.44 setting (suites 1 and 2): compressed
+	// requests in general-glo, general-ded and general ciphering are
+	// decompressed after deciphering; with CompressAnswers the answers in
+	// those forms are compressed when that makes them smaller. Nil refuses
+	// compressed requests.
+	Compression     *cosem.Compression
+	CompressAnswers bool
+	// ThirdParties are the third parties (IEC 62056-5-3:2023 annex J) whose
+	// general-signing and general-ciphering layers are accepted inside the
+	// client's general-glo, general-ded or general ciphering; the answer
+	// carries the server's layers for the third party inside the client's.
+	ThirdParties []cosem.ResponderThirdParty
 	// Context, when not 0, is the only application context accepted (1 LN,
 	// 2 SN, 3 LN with ciphering, 4 SN with ciphering); an AARQ proposing
 	// another is refused with diagnostic 2. 0 accepts the server's
@@ -145,6 +171,11 @@ type Stats struct {
 	GBTBlocks    int // general-block-transfer APDUs sent
 	// Protected requests opened, by form.
 	ServiceSpecific, GeneralGlo, GeneralDed int
+	// GeneralCiphering counts general-ciphering requests opened, Signed
+	// the general-signing requests answered, BadSignatures the signed or
+	// third-party layers refused, ThirdParty the requests carrying a third
+	// party's layers, Compressed the compressed requests decompressed.
+	GeneralCiphering, Signed, BadSignatures, ThirdParty, Compressed int
 }
 
 // Stats returns the counters so far.
@@ -371,6 +402,28 @@ func (s *Server) check() error {
 		}
 		if a.Mechanism == 2 && len(a.Secret) != 16 && len(a.Secret) != 24 && len(a.Secret) != 32 {
 			return fmt.Errorf("client %d: the mechanism 2 secret must be an AES key (16, 24 or 32 octets)", a.ClientAddress)
+		}
+		if a.Signing && (a.SigningKey == nil || a.ClientKey == nil || a.Suite == 0) {
+			return fmt.Errorf("client %d: general signing needs suite 1 or 2, the server's signing key and the client's public key", a.ClientAddress)
+		}
+		if a.Compression != nil && a.Compression.Enabled {
+			if a.Suite == 0 || a.Policy == 0 {
+				return fmt.Errorf("client %d: compression needs protected APDUs in security suite 1 or 2", a.ClientAddress)
+			}
+			if _, err := a.Compression.Params(); err != nil {
+				return fmt.Errorf("client %d: %w", a.ClientAddress, err)
+			}
+		}
+		if len(a.MasterKey) != 0 && len(a.MasterKey) != n {
+			return fmt.Errorf("client %d: the master key must be %d octets", a.ClientAddress, n)
+		}
+		if len(a.ThirdParties) > 0 && (a.Suite == 0 || a.Policy == 0) {
+			return fmt.Errorf("client %d: third parties need protected APDUs in security suite 1 or 2", a.ClientAddress)
+		}
+		for _, tp := range a.ThirdParties {
+			if len(tp.SystemTitle) != 8 {
+				return fmt.Errorf("client %d: a third party's system title must be 8 octets", a.ClientAddress)
+			}
 		}
 	}
 	if len(s.Associations) == 0 {

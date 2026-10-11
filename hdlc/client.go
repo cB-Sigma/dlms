@@ -19,8 +19,24 @@ type Config struct {
 	// (physical device) address in a 1, 2 or 4 octet field.
 	Server Address
 	// Propose, when set, is sent in the SNRM for negotiation; without it
-	// the SNRM has no information field and the defaults apply.
+	// the SNRM has no information field and the defaults apply. Windows
+	// above 7 need Modulo 128.
 	Propose *Params
+	// Modulo is the sequence numbering: 0 or 8 for modulo 8, the only one
+	// IEC 62056-46 (and so DLMS) uses; 128 sets the link up with SNRME for
+	// ISO/IEC 13239 extended numbering (two-octet control fields on I and
+	// S frames, windows up to 127).
+	Modulo int
+	// ModuloFallback, with Modulo 128, sets the link up with SNRM (modulo
+	// 8) when the server answers SNRME with DM or FRMR or not at all, so
+	// the numbering is negotiated rather than required.
+	ModuloFallback bool
+	// SegmentUI lets SendBroadcast send an APDU longer than one UI frame
+	// as UI frames with the segmentation bit set on all but the last. IEC
+	// 62056-46 6.4.4.4.3.4 keeps a UI frame's data to one frame (F-233),
+	// so this is off by default; servers that join segmented UI frames,
+	// such as our Station, take them.
+	SegmentUI bool
 	// UserData goes in the SNRM's user data subfield (IEC 62056-7-6 9.3;
 	// ISO/IEC 13239 5.5.3.2.3).
 	UserData []byte
@@ -90,7 +106,18 @@ type Client struct {
 	gone    chan struct{} // closed when the lower transport stops delivering
 	last    atomic.Int64  // UnixNano of the last octet sent or received
 	ui      []byte        // UI segments so far (lenient receive, see F-233)
+	mod     atomic.Int32  // numbering of the link: 8 or 128
 }
+
+// modulo is the link's numbering (8 or 128).
+func (c *Client) modulo() int { return int(c.mod.Load()) }
+
+// mask reduces a sequence number to the link's modulus.
+func (c *Client) mask() int { return c.modulo() - 1 }
+
+// Modulo is the numbering of the link set up last: 8, or 128 after SNRME
+// was accepted.
+func (c *Client) Modulo() int { return c.modulo() }
 
 // NewClient builds a client over lower, which it owns.
 func NewClient(lower gdlms.Transport, cfg Config) (*Client, error) {
@@ -100,8 +127,14 @@ func NewClient(lower gdlms.Transport, cfg Config) (*Client, error) {
 	if err := cfg.Server.Check(); err != nil {
 		return nil, err
 	}
+	if err := checkModulo(cfg.Modulo); err != nil {
+		return nil, err
+	}
+	if cfg.Modulo == 0 {
+		cfg.Modulo = Modulo8
+	}
 	if cfg.Propose != nil {
-		if err := cfg.Propose.Check(); err != nil {
+		if err := cfg.Propose.CheckModulo(cfg.Modulo); err != nil {
 			return nil, err
 		}
 	}
@@ -116,6 +149,7 @@ func NewClient(lower gdlms.Transport, cfg Config) (*Client, error) {
 	}
 	c := &Client{cfg: cfg, lower: lower, params: Defaults(), in: make(gdlms.DataChannel, 16),
 		frames: make(chan Frame, 64), stop: make(chan struct{}), gone: make(chan struct{})}
+	c.mod.Store(Modulo8)
 	lower.SetReception(c.in)
 	go c.read()
 	return c, nil
@@ -129,10 +163,10 @@ func (c *Client) PeerUserData() []byte {
 	return append([]byte(nil), c.peer...)
 }
 
-// rejected reads the reason of an FRMR (ISO/IEC 13239 5.5.3.4.2, modulo 8),
-// logs it and returns the link error that names it.
+// rejected reads the reason of an FRMR (ISO/IEC 13239 5.5.3.4.2, in the
+// link's numbering), logs it and returns the link error that names it.
 func (c *Client) rejected(info []byte) error {
-	err := rejectError(info)
+	err := rejectErrorModulo(info, c.modulo())
 	if c.logger != nil {
 		c.logger.Printf("HDLC FRMR from the server: %v", err)
 	}
@@ -171,7 +205,7 @@ func (c *Client) read() {
 		}
 		c.last.Store(time.Now().UnixNano())
 		for _, raw := range s.Feed(chunk, time.Now()) {
-			f, err := Decode(raw)
+			f, err := DecodeModulo(raw, c.modulo())
 			if errors.Is(err, ErrHCS) {
 				s.Reset()
 				break
@@ -179,7 +213,7 @@ func (c *Client) read() {
 			if err != nil || !c.ours(f) {
 				continue
 			}
-			if ParseControl(f.Control).Kind == KindUI {
+			if f.ControlField().Kind == KindUI {
 				c.gotUI(f)
 				continue
 			}
@@ -199,7 +233,7 @@ func (c *Client) ours(f Frame) bool {
 	c.amu.Lock()
 	client, server := c.cfg.Client, c.cfg.Server
 	c.amu.Unlock()
-	ui := ParseControl(f.Control).Kind == KindUI
+	ui := f.ControlField().Kind == KindUI
 	if f.Dest.Size != 1 || (f.Dest.Upper != client && !(ui && f.Dest.Upper == ClientManagement)) {
 		return false
 	}
@@ -239,8 +273,10 @@ func (c *Client) write(f Frame) error {
 	return err
 }
 
-func (c *Client) frame(control byte, info []byte, segmented bool) Frame {
-	return Frame{Dest: c.cfg.Server, Src: ClientAddress(c.cfg.Client), Control: control, Info: info, Segmented: segmented}
+func (c *Client) frame(control Control, info []byte, segmented bool) Frame {
+	f := Frame{Dest: c.cfg.Server, Src: ClientAddress(c.cfg.Client), Info: info, Segmented: segmented}
+	control.set(&f, c.modulo())
+	return f
 }
 
 // await returns the next frame, or ok false after the response time-out.
@@ -275,7 +311,9 @@ func (c *Client) drain() {
 
 // Connect opens the lower transport and sets up the link: SNRM, then UA
 // with the negotiation result or DM (6.4.4.4.3.1). SNRM is repeated after
-// each response time-out, up to the retries.
+// each response time-out, up to the retries. With Modulo 128 the command
+// is SNRME (ISO/IEC 13239 extended numbering), followed by SNRM when
+// ModuloFallback is set and the server does not take SNRME.
 func (c *Client) Connect() error {
 	defer c.hold()()
 	c.mu.Lock()
@@ -293,7 +331,40 @@ func (c *Client) Connect() error {
 	} else if len(c.cfg.UserData) > 0 {
 		info = Defaults().Encode(c.cfg.UserData)
 	}
-	snrm := c.frame(ctl(KindSNRM, true), info, false)
+	modes := []int{Modulo8}
+	if c.cfg.Modulo == Modulo128 {
+		modes = []int{Modulo128}
+		if c.cfg.ModuloFallback {
+			modes = append(modes, Modulo8)
+		}
+	}
+	var err error
+	for i, m := range modes {
+		last := i == len(modes)-1
+		p, mi := proposed.capWindows(m), info
+		if p != proposed {
+			mi = p.Encode(c.cfg.UserData)
+		}
+		err = c.setMode(m, mi, p)
+		if err == nil || last || errors.Is(err, ErrLinkLost) {
+			return err
+		}
+		if c.logger != nil {
+			c.logger.Printf("HDLC SNRME not taken (%v): setting up modulo 8", err)
+		}
+	}
+	return err
+}
+
+// setMode sends SNRM (modulo 8) or SNRME (modulo 128) until a UA, DM or
+// FRMR comes back or the retries run out.
+func (c *Client) setMode(modulo int, info []byte, proposed Params) error {
+	c.mod.Store(int32(modulo))
+	kind, name := KindSNRM, "SNRM"
+	if modulo == Modulo128 {
+		kind, name = KindSNRME, "SNRME"
+	}
+	snrm := c.frame(cU(kind, true), info, false)
 	for try := 0; try <= c.cfg.Retries; try++ {
 		if err := c.write(snrm); err != nil {
 			return err
@@ -306,22 +377,28 @@ func (c *Client) Connect() error {
 			if !ok {
 				break
 			}
-			switch ParseControl(f.Control).Kind {
+			switch f.ControlField().Kind {
 			case KindUA:
 				got, user, err := DecodeParams(f.Info)
 				if err != nil {
 					return fmt.Errorf("the UA: %w", err)
 				}
-				c.params = bounded(got.Mirror(), proposed)
+				c.params = bounded(got.Mirror(), proposed, modulo)
 				c.peer = user
 				c.vs, c.vr, c.linked = 0, 0, true
 				return nil
 			case KindDM:
 				return ErrRefused
+			case KindFRMR:
+				if modulo == Modulo128 {
+					// A peer without SNRME rejects it in its own (modulo
+					// 8) numbering.
+					return rejectErrorModulo(f.Info, Modulo8)
+				}
 			}
 		}
 	}
-	return fmt.Errorf("SNRM: %w", ErrTimeout)
+	return fmt.Errorf("%s: %w", name, ErrTimeout)
 }
 
 // Disconnect sends DISC and waits for UA or DM (6.4.4.4.3.3), then closes
@@ -338,7 +415,7 @@ func (c *Client) Disconnect() error {
 	}
 	c.linked = false
 	c.drain()
-	disc := c.frame(ctl(KindDISC, true), EncodeUserData(c.cfg.DISCUserData), false)
+	disc := c.frame(cU(KindDISC, true), EncodeUserData(c.cfg.DISCUserData), false)
 	for try := 0; try <= c.cfg.Retries; try++ {
 		if err := c.write(disc); err != nil {
 			return err
@@ -351,7 +428,7 @@ func (c *Client) Disconnect() error {
 			if !ok {
 				break
 			}
-			if k := ParseControl(f.Control).Kind; k == KindUA || k == KindDM {
+			if k := f.ControlField().Kind; k == KindUA || k == KindDM {
 				return nil
 			}
 		}
@@ -450,16 +527,43 @@ func (c *Client) deliver(apdu []byte) {
 
 // SendBroadcast sends an unconfirmed APDU in one UI frame with P 0 to the
 // server address (IEC 62056-7-6 9.1). The UI frame needs no link; its data
-// must fit one frame (6.4.4.4.3.4).
+// must fit one frame (6.4.4.4.3.4) unless SegmentUI is set: then a longer
+// APDU goes in UI frames of up to the negotiated information field, each
+// with P 0, all but the last with the segmentation bit.
 func (c *Client) SendBroadcast(apdu []byte) error {
 	defer c.hold()()
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	info := append(append([]byte(nil), LLCCommand...), apdu...)
-	if mx := c.params.MaxInfoTX; len(info) > mx {
+	mx := c.params.MaxInfoTX
+	if len(info) > mx && !c.cfg.SegmentUI {
 		return fmt.Errorf("an unconfirmed APDU of %d octets does not fit one UI frame of %d", len(apdu), mx)
 	}
-	return c.write(c.frame(ctl(KindUI, false), info, false))
+	if len(info) > maxMSDU {
+		return fmt.Errorf("an unconfirmed APDU of %d octets is longer than %d", len(apdu), maxMSDU)
+	}
+	for _, seg := range segmentsOf(info, mx) {
+		if err := c.write(c.frame(cU(KindUI, false), seg.data, seg.more)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// segment is one part of an MSDU; more is the segmentation bit.
+type segment struct {
+	data []byte
+	more bool
+}
+
+// segmentsOf cuts an MSDU into parts of at most n octets.
+func segmentsOf(msdu []byte, n int) []segment {
+	var out []segment
+	for len(msdu) > n {
+		out = append(out, segment{msdu[:n], true})
+		msdu = msdu[n:]
+	}
+	return append(out, segment{msdu, false})
 }
 
 // Trigger sends an empty UI frame with P 1, which gives the server the
@@ -469,7 +573,7 @@ func (c *Client) Trigger() error {
 	defer c.hold()()
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return c.write(c.frame(ctl(KindUI, true), nil, false))
+	return c.write(c.frame(cU(KindUI, true), nil, false))
 }
 
 // Send moves one APDU to the server in I frames and waits for its answer,
@@ -525,13 +629,13 @@ func (c *Client) transfer(msdu []byte) ([]byte, error) {
 			}
 			end := min(una+c.params.WindowTX, len(segs))
 			for k := next; k < end; k++ {
-				f := c.frame(ctlI(c.vr, (base+k)&7, k == end-1), segs[k], k < len(segs)-1)
+				f := c.frame(cI(c.vr, (base+k)&c.mask(), k == end-1), segs[k], k < len(segs)-1)
 				if err := c.write(f); err != nil {
 					return nil, fmt.Errorf("%w: %v", ErrLinkLost, err)
 				}
 			}
 			next = end
-			c.vs = (base + next) & 7
+			c.vs = (base + next) & c.mask()
 			awaiting = true
 		}
 		f, ok, err := c.await()
@@ -542,15 +646,15 @@ func (c *Client) transfer(msdu []byte) ([]byte, error) {
 			if retries++; retries > c.cfg.Retries {
 				return nil, ErrTimeout
 			}
-			if err := c.write(c.frame(ctlRR(c.vr, true), nil, false)); err != nil {
+			if err := c.write(c.frame(cRR(c.vr, true), nil, false)); err != nil {
 				return nil, fmt.Errorf("%w: %v", ErrLinkLost, err)
 			}
 			continue
 		}
-		ctl := ParseControl(f.Control)
+		ctl := f.ControlField()
 		switch ctl.Kind {
 		case KindRR, KindRNR, KindI:
-			n := (ctl.NR - (base + una)) & 7
+			n := (ctl.NR - (base + una)) & c.mask()
 			if n > next-una {
 				return nil, fmt.Errorf("%w: N(R) %d acknowledges frames not sent", ErrRejected, ctl.NR)
 			}
@@ -570,7 +674,7 @@ func (c *Client) transfer(msdu []byte) ([]byte, error) {
 			if ctl.Kind == KindRNR {
 				// Busy (6.4.3.5): wait, then poll.
 				time.Sleep(min(c.cfg.ResponseTimeout/4, 500*time.Millisecond))
-				if err := c.write(c.frame(ctlRR(c.vr, true), nil, false)); err != nil {
+				if err := c.write(c.frame(cRR(c.vr, true), nil, false)); err != nil {
 					return nil, fmt.Errorf("%w: %v", ErrLinkLost, err)
 				}
 				awaiting = true
@@ -604,18 +708,18 @@ func (c *Client) receive(f Frame) ([]byte, error) {
 				if retries++; retries > c.cfg.Retries {
 					return nil, ErrTimeout
 				}
-				if err := c.write(c.frame(ctlRR(c.vr, true), nil, false)); err != nil {
+				if err := c.write(c.frame(cRR(c.vr, true), nil, false)); err != nil {
 					return nil, fmt.Errorf("%w: %v", ErrLinkLost, err)
 				}
 				continue
 			}
 		}
 		have = false
-		ctl := ParseControl(f.Control)
+		ctl := f.ControlField()
 		switch ctl.Kind {
 		case KindI:
 			if ctl.NS == c.vr && !complete {
-				c.vr = (c.vr + 1) & 7
+				c.vr = (c.vr + 1) & c.mask()
 				buf = append(buf, f.Info...)
 				complete = !f.Segmented
 				if len(buf) > maxMSDU {
@@ -649,7 +753,7 @@ func (c *Client) receive(f Frame) ([]byte, error) {
 		}
 		// More to come (segmentation bit on the window's last frame) or a
 		// sequence error: acknowledge what we have and poll.
-		if err := c.write(c.frame(ctlRR(c.vr, true), nil, false)); err != nil {
+		if err := c.write(c.frame(cRR(c.vr, true), nil, false)); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrLinkLost, err)
 		}
 	}

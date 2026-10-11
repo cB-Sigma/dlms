@@ -21,18 +21,33 @@ func Defaults() Params {
 
 // Check reports values outside the protocol's range: information fields of
 // 1 to 2030 octets, windows of 1 to 7 frames.
-func (p Params) Check() error {
+func (p Params) Check() error { return p.CheckModulo(Modulo8) }
+
+// CheckModulo is Check for a link numbered modulo 8 or 128: under modulo
+// 128 windows may be up to 127 frames.
+func (p Params) CheckModulo(modulo int) error {
+	if err := checkModulo(modulo); err != nil {
+		return err
+	}
 	for _, v := range []int{p.MaxInfoTX, p.MaxInfoRX} {
 		if v < 1 || v > MaxInfo {
 			return fmt.Errorf("a maximum information field length of %d is not 1 to %d", v, MaxInfo)
 		}
 	}
+	mw := maxWindowFor(modulo)
 	for _, v := range []int{p.WindowTX, p.WindowRX} {
-		if v < 1 || v > MaxWindow {
-			return fmt.Errorf("a window size of %d is not 1 to %d", v, MaxWindow)
+		if v < 1 || v > mw {
+			return fmt.Errorf("a window size of %d is not 1 to %d", v, mw)
 		}
 	}
 	return nil
+}
+
+// capWindows keeps both windows within the modulus.
+func (p Params) capWindows(modulo int) Params {
+	mw := maxWindowFor(modulo)
+	p.WindowTX, p.WindowRX = max(1, min(p.WindowTX, mw)), max(1, min(p.WindowRX, mw))
+	return p
 }
 
 // Negotiation information field identifiers (6.4.4.4.3.2; ISO/IEC 13239
@@ -178,14 +193,15 @@ func (p Params) Mirror() Params {
 	return Params{MaxInfoTX: p.MaxInfoRX, MaxInfoRX: p.MaxInfoTX, WindowTX: p.WindowRX, WindowRX: p.WindowTX}
 }
 
-// bounded keeps values from a peer inside the protocol's range and never
-// above what we proposed.
-func bounded(got, proposed Params) Params {
+// bounded keeps values from a peer inside the protocol's range (windows
+// within the modulus) and never above what we proposed.
+func bounded(got, proposed Params, modulo int) Params {
 	c := func(v, lo, hi, want int) int { return max(lo, min(v, hi, want)) }
+	mw := maxWindowFor(modulo)
 	return Params{
 		MaxInfoTX: c(got.MaxInfoTX, 1, MaxInfo, proposed.MaxInfoTX),
 		MaxInfoRX: c(got.MaxInfoRX, 1, MaxInfo, proposed.MaxInfoRX),
-		WindowTX:  c(got.WindowTX, 1, MaxWindow, proposed.WindowTX),
-		WindowRX:  c(got.WindowRX, 1, MaxWindow, proposed.WindowRX),
+		WindowTX:  c(got.WindowTX, 1, mw, proposed.WindowTX),
+		WindowRX:  c(got.WindowRX, 1, mw, proposed.WindowRX),
 	}
 }

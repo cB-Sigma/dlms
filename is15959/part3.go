@@ -178,6 +178,9 @@ func p3Spec(id, category, title string, d4 bool, block, daily, billing []Column,
 		}
 	}
 	s.Methods = p3Methods(d4)
+	sdo, sdm := specialDays(p3Settings, p3Exec)
+	s.Objects = append(s.Objects, sdo...)
+	s.Methods = append(s.Methods, sdm...)
 	s.dedupe()
 	return s
 }

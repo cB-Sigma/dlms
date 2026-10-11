@@ -16,5 +16,5 @@
 // 8-bit bytes when the converter runs 8N1. OpenSession signs on and reads
 // the identification; Session runs the exchanges, repeating on NAK and
 // breaking off with B0 after three tries (annex A). OBIS names the
-// reduced IDs (obis.go). The simulator is package iec6205621sim.
+// reduced IDs (obis.go). The meter side is package meter.
 package iec6205621

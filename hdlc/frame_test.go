@@ -217,7 +217,7 @@ func TestNegotiation(t *testing.T) {
 		t.Errorf("Table 8 result %+v", res)
 	}
 	// Client to server 40h octets and window 1; server to client 80h and 7.
-	if c := bounded(res.Mirror(), proposed); c != (Params{MaxInfoTX: 64, MaxInfoRX: 128, WindowTX: 1, WindowRX: 7}) {
+	if c := bounded(res.Mirror(), proposed, Modulo8); c != (Params{MaxInfoTX: 64, MaxInfoRX: 128, WindowTX: 1, WindowRX: 7}) {
 		t.Errorf("the client's view %+v", c)
 	}
 }

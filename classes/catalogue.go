@@ -190,8 +190,10 @@ var catalogue = []Class{
 			st(6, "destinationList")},
 		Methods: []Method{me(1, "connect")}},
 	// Push setup: version 0 (attributes 1 to 7 and push), the form IS 15959
-	// meters carry. Later versions add attributes 8 and up; they are not
-	// listed here.
+	// meters carry. Version 1 adds attributes 8 to 10 and version 2
+	// attributes 11 to 13, with repetition_delay (7) a structure; they are
+	// not listed here. Gurux's sources count 7, 10 and 13 attributes for
+	// versions 0, 1 and 2 the same way (GXDLMSPushSetup getAttributeCount).
 	{ID: 40, Version: 0, Name: "pushSetup", FirstMethodSN: 0x38,
 		Attributes: []Attribute{lnAttr, st(2, "pushObjectList"), st(3, "sendDestinationAndMethod"), st(4, "communicationWindow"),
 			st(5, "randomisationStartInterval"), st(6, "numberOfRetries"), st(7, "repetitionDelay")},
@@ -209,8 +211,12 @@ var catalogue = []Class{
 		Attributes: []Attribute{lnAttr, st(2, "physicalReference"), st(3, "lcpOptions"), st(4, "ipcpOptions"), st(5, "pppAuthentication")}},
 	{ID: 45, Version: 0, Name: "gprsModemSetup",
 		Attributes: []Attribute{lnAttr, st(2, "apn"), st(3, "pinCode"), st(4, "qualityOfService")}},
-	// GSM diagnostic: the attribute numbers are the same in versions 0 to
-	// 2; version 1 is recorded until the current version is confirmed.
+	// GSM diagnostic: eight attributes in every version. Version 0 has the
+	// short cell_info (four fields, a 16-bit cell ID); version 1 and later
+	// the long one (seven fields, a 32-bit cell ID, MCC, MNC and channel).
+	// Version 1 is recorded: Gurux's sources disagree on the default (1 in
+	// Python, 2 in Java and .Net, whose highest supported version is 1) but
+	// encode nothing for version 2 beyond version 1.
 	{ID: 47, Version: 1, Name: "gsmDiagnostic",
 		Attributes: []Attribute{lnAttr, dy(2, "operator"), dy(3, "status"), dy(4, "csAttachment"), dy(5, "psStatus"),
 			dy(6, "cellInfo"), dy(7, "adjacentCells"), dy(8, "captureTime")}},

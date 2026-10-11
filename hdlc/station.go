@@ -46,6 +46,15 @@ type Station struct {
 	// StopAfterDISC makes Serve return after answering a DISC: the session
 	// was handed over for one link (IEC 62056-21 mode E).
 	StopAfterDISC bool
+	// Modulo128 makes the station take SNRME (ISO/IEC 13239 extended
+	// numbering, windows up to 127 as Own allows); without it SNRME is
+	// answered with DM and the client falls back to SNRM. IEC 62056-46
+	// uses modulo 8 only.
+	Modulo128 bool
+	// SegmentUI sends a pending UI APDU longer than the information field
+	// as several UI frames, the segmentation bit on all but the last (F-233:
+	// off by default, as IEC 62056-46 keeps UI data to one frame).
+	SegmentUI bool
 
 	mu      sync.Mutex
 	pending [][]byte // UI information fields waiting for the right to talk
@@ -63,6 +72,7 @@ type Station struct {
 // link is the state of one data link connection (owned by Serve).
 type link struct {
 	linked      bool
+	mod         int    // numbering set by the last SNRM (8) or SNRME (128); 0 is 8
 	params      Params // negotiated, our point of view
 	vs, vr      int
 	rx          []byte   // I segments received so far
@@ -93,6 +103,31 @@ func (s *Station) use(client int) {
 		s.links[client] = l
 	}
 	s.link = l
+}
+
+// modulo is the numbering of the link at hand.
+func (l *link) modulo() int {
+	if l.mod == Modulo128 {
+		return Modulo128
+	}
+	return Modulo8
+}
+
+func (l *link) mask() int { return l.modulo() - 1 }
+
+// decode reads a frame in the numbering of the link of its source.
+func (s *Station) decode(raw []byte) (Frame, error) {
+	mod := Modulo8
+	if len(raw) > 4 {
+		if _, n, err := DecodeAddress(raw[3 : len(raw)-1]); err == nil && 3+n < len(raw)-1 {
+			if src, _, err := DecodeAddress(raw[3+n : len(raw)-1]); err == nil && src.Size == 1 {
+				if l := s.links[src.Upper]; l != nil {
+					mod = l.modulo()
+				}
+			}
+		}
+	}
+	return DecodeModulo(raw, mod)
 }
 
 func (s *Station) setLinked(up bool) {
@@ -197,7 +232,7 @@ func (s *Station) Serve(rw io.ReadWriter) error {
 			return err
 		}
 		for _, raw := range sc.Feed(buf[:n], time.Now()) {
-			f, err := Decode(raw)
+			f, err := s.decode(raw)
 			if errors.Is(err, ErrHCS) {
 				sc.Reset()
 				break
@@ -276,7 +311,7 @@ func (s *Station) send(w io.Writer, f Frame) error {
 
 // reply builds a frame to the client from the address it used; with the
 // CALLING address our own lower address goes back (6.4.4.8).
-func (s *Station) reply(control byte, info []byte, segmented bool) Frame {
+func (s *Station) reply(control Control, info []byte, segmented bool) Frame {
 	src := s.lastAddress
 	if src.Size == 0 || src.Broadcast() {
 		src = ServerAddress(s.Upper, s.Lower, s.Size)
@@ -284,20 +319,35 @@ func (s *Station) reply(control byte, info []byte, segmented bool) Frame {
 	if src.Size > 1 && src.Lower == CallingFor(src.Size) {
 		src.Lower = s.Lower
 	}
-	return Frame{Dest: ClientAddress(s.client), Src: src, Control: control, Info: info, Segmented: segmented}
+	f := Frame{Dest: ClientAddress(s.client), Src: src, Info: info, Segmented: segmented}
+	control.set(&f, s.modulo())
+	return f
 }
 
 // flushUI sends the pending UI frames with F 0, the last with F final.
+// With SegmentUI an APDU longer than the information field goes in
+// segments (the segmentation bit on all but its last).
 func (s *Station) flushUI(w io.Writer, final bool) (sent bool, err error) {
 	s.mu.Lock()
 	p := s.pending
 	s.pending = nil
 	s.mu.Unlock()
+	mx := DefaultMaxInfo
+	if s.link != nil && s.linked {
+		mx = s.params.MaxInfoTX
+	}
 	for i, info := range p {
-		src := ServerAddress(ManagementDevice, s.Lower, s.Size)
-		f := Frame{Dest: ClientAddress(s.clientFor()), Src: src, Control: ctl(KindUI, final && i == len(p)-1), Info: info}
-		if err := s.send(w, f); err != nil {
-			return true, err
+		segs := []segment{{info, false}}
+		if s.SegmentUI {
+			segs = segmentsOf(info, mx)
+		}
+		for j, seg := range segs {
+			src := ServerAddress(ManagementDevice, s.Lower, s.Size)
+			last := i == len(p)-1 && j == len(segs)-1
+			f := Frame{Dest: ClientAddress(s.clientFor()), Src: src, Control: ctl(KindUI, final && last), Info: seg.data, Segmented: seg.more}
+			if err := s.send(w, f); err != nil {
+				return true, err
+			}
 		}
 	}
 	return len(p) > 0, nil
@@ -316,7 +366,7 @@ func (s *Station) frame(w io.Writer, f Frame) error {
 	if f.Src.Size != 1 {
 		return nil
 	}
-	c := ParseControl(f.Control)
+	c := f.ControlField()
 	s.use(f.Src.Upper)
 	if broadcast {
 		// Only UI (and DISC) may be broadcast, with P 0 (6.4.2.4, 6.4.4.6).
@@ -330,7 +380,7 @@ func (s *Station) frame(w io.Writer, f Frame) error {
 	}
 	s.lastAddress = f.Dest
 	if s.held != nil {
-		modeSetting := c.Kind == KindSNRM || c.Kind == KindDISC
+		modeSetting := c.Kind == KindSNRM || c.Kind == KindSNRME || c.Kind == KindDISC
 		switch {
 		case s.heldFRMR && modeSetting:
 			// A mode-setting command ends the frame reject condition.
@@ -349,19 +399,31 @@ func (s *Station) frame(w io.Writer, f Frame) error {
 		}
 	}
 	switch c.Kind {
-	case KindSNRM:
+	case KindSNRM, KindSNRME:
+		mod := Modulo8
+		if c.Kind == KindSNRME {
+			if !s.Modulo128 {
+				// Extended numbering is not taken: DM says the mode
+				// cannot be set (ISO/IEC 13239), and the client may fall
+				// back to SNRM.
+				s.setLinked(false)
+				return s.respond(w, c.PF, s.reply(cU(KindDM, true), nil, false))
+			}
+			mod = Modulo128
+		}
 		proposed, user, err := DecodeParams(f.Info)
 		if err != nil {
 			s.setLinked(false)
-			return s.respond(w, c.PF, s.reply(ctl(KindDM, true), nil, false))
+			return s.respond(w, c.PF, s.reply(cU(KindDM, true), nil, false))
 		}
 		s.userData(KindSNRM, user)
-		s.params = Negotiate(proposed, s.own())
+		s.mod = mod
+		s.params = Negotiate(proposed, s.own()).capWindows(mod)
 		s.vs, s.vr, s.rx, s.rxComplete = 0, 0, nil, false
 		s.setLinked(true)
 		s.tx, s.txBase, s.txNext = nil, 0, 0
 		ua := s.params.Encode(s.UserData)
-		return s.respond(w, c.PF, s.reply(ctl(KindUA, true), ua, false))
+		return s.respond(w, c.PF, s.reply(cU(KindUA, true), ua, false))
 	case KindDISC:
 		// A DISC may carry the format identifier and user data only
 		// (13239 Table 9); anything else in it is ignored.
@@ -380,50 +442,50 @@ func (s *Station) frame(w io.Writer, f Frame) error {
 		} else if c.PF {
 			s.stop = stop
 		}
-		return s.respond(w, c.PF, s.reply(ctl(k, true), nil, false))
+		return s.respond(w, c.PF, s.reply(cU(k, true), nil, false))
 	case KindUI:
 		return s.ui(w, f, false)
 	case KindUnknown, KindUA, KindDM, KindFRMR:
 		if !s.linked {
 			return nil
 		}
-		return s.reject(w, c, f.Control, FrameReject{W: true})
+		return s.reject(w, c, f, FrameReject{W: true})
 	}
 	if !s.linked {
 		// I, RR, RNR in NDM: ask for a mode setting command (6.4.3.9).
 		if c.PF {
-			return s.send(w, s.reply(ctl(KindDM, true), nil, false))
+			return s.send(w, s.reply(cU(KindDM, true), nil, false))
 		}
 		return nil
 	}
 	// RR and RNR carry no information field: W and X (13239 5.5.3.4.2).
 	if (c.Kind == KindRR || c.Kind == KindRNR) && len(f.Info) > 0 {
-		return s.reject(w, c, f.Control, FrameReject{W: true, X: true})
+		return s.reject(w, c, f, FrameReject{W: true, X: true})
 	}
 	// N(R) acknowledges our answer frames.
-	acked := (c.NR - s.txBase) & 7
+	acked := (c.NR - s.txBase) & s.mask()
 	if acked > s.txNext {
-		return s.reject(w, c, f.Control, FrameReject{Z: true})
+		return s.reject(w, c, f, FrameReject{Z: true})
 	}
 	s.tx = s.tx[acked:]
 	s.txNext -= acked
-	s.txBase = (s.txBase + acked) & 7
+	s.txBase = (s.txBase + acked) & s.mask()
 	switch c.Kind {
 	case KindI:
 		if len(f.Info) > s.params.MaxInfoRX {
-			return s.reject(w, c, f.Control, FrameReject{Y: true})
+			return s.reject(w, c, f, FrameReject{Y: true})
 		}
 		if s.isBusy() {
 			// Busy (6.4.3.5): the frame is not accepted; RNR says what
 			// was, and the primary sends it again after the busy ends.
 			if c.PF {
 				s.takeBusy()
-				return s.send(w, s.reply(ctl2(KindRNR, s.vr), nil, false))
+				return s.send(w, s.reply(cRNR(s.vr), nil, false))
 			}
 			return nil
 		}
 		if c.NS == s.vr {
-			s.vr = (s.vr + 1) & 7
+			s.vr = (s.vr + 1) & s.mask()
 			s.rx = append(s.rx, f.Info...)
 			if !f.Segmented {
 				msdu := s.rx
@@ -445,14 +507,14 @@ func (s *Station) frame(w io.Writer, f Frame) error {
 			s.rx, s.rxComplete = nil, false
 			return s.answer(w, msdu)
 		}
-		return s.send(w, s.reply(ctlRR(s.vr, true), nil, false))
+		return s.send(w, s.reply(cRR(s.vr, true), nil, false))
 	case KindRR, KindRNR:
 		if !c.PF {
 			return nil
 		}
 		if s.isBusy() {
 			s.takeBusy()
-			return s.send(w, s.reply(ctl2(KindRNR, s.vr), nil, false))
+			return s.send(w, s.reply(cRNR(s.vr), nil, false))
 		}
 		if c.Kind == KindRR && len(s.tx) > 0 {
 			return s.sendWindow(w)
@@ -460,7 +522,7 @@ func (s *Station) frame(w io.Writer, f Frame) error {
 		if _, err := s.flushUI(w, false); err != nil {
 			return err
 		}
-		return s.send(w, s.reply(ctlRR(s.vr, true), nil, false))
+		return s.send(w, s.reply(cRR(s.vr, true), nil, false))
 	}
 	return nil
 }
@@ -468,7 +530,7 @@ func (s *Station) frame(w io.Writer, f Frame) error {
 // ui handles a UI frame: an unconfirmed APDU, or with P 1 and no
 // information the permission to send pending UI frames (6.4.4.7 a).
 func (s *Station) ui(w io.Writer, f Frame, broadcast bool) error {
-	c := ParseControl(f.Control)
+	c := f.ControlField()
 	if len(f.Info) == 0 {
 		if c.PF && !broadcast {
 			_, err := s.flushUI(w, true)
@@ -506,7 +568,7 @@ func (s *Station) answer(w io.Writer, msdu []byte) error {
 		if _, err := s.flushUI(w, false); err != nil {
 			return err
 		}
-		return s.send(w, s.reply(ctlRR(s.vr, true), nil, false))
+		return s.send(w, s.reply(cRR(s.vr, true), nil, false))
 	}
 	info := append(append([]byte(nil), LLCResponse...), resp...)
 	s.tx, s.txNext, s.txBase = nil, 0, s.vs
@@ -528,14 +590,14 @@ func (s *Station) sendWindow(w io.Writer) error {
 		return err
 	}
 	for k := 0; k < end; k++ {
-		ns := (s.txBase + k) & 7
-		f := s.reply(ctlI(s.vr, ns, k == end-1), s.tx[k], k < len(s.tx)-1)
+		ns := (s.txBase + k) & s.mask()
+		f := s.reply(cI(s.vr, ns, k == end-1), s.tx[k], k < len(s.tx)-1)
 		if err := s.send(w, f); err != nil {
 			return err
 		}
 	}
 	s.txNext = end
-	s.vs = (s.txBase + end) & 7
+	s.vs = (s.txBase + end) & s.mask()
 	return nil
 }
 
@@ -553,16 +615,17 @@ func (s *Station) respond(w io.Writer, poll bool, f Frame) error {
 	return nil
 }
 
-// reject sends FRMR with the modulo 8 information field of ISO/IEC 13239
-// 5.5.3.4.2 Figure 18a: the rejected control field, our V(S), C/R 0 (a
-// secondary station only rejects commands), our V(R), and the reason bits
-// set in r. A frame rejected without P gets its FRMR at the next poll.
-func (s *Station) reject(w io.Writer, c Control, control byte, r FrameReject) error {
-	r.Modulo, r.Control, r.VS, r.VR, r.Response = 8, uint16(control), s.vs, s.vr, false
+// reject sends FRMR with the information field of ISO/IEC 13239 5.5.3.4.2
+// in the link's numbering (Figure 18a modulo 8, 18b modulo 128): the
+// rejected control field, our V(S), C/R 0 (a secondary station only
+// rejects commands), our V(R), and the reason bits set in r. A frame
+// rejected without P gets its FRMR at the next poll.
+func (s *Station) reject(w io.Writer, c Control, rejected Frame, r FrameReject) error {
+	r.Modulo, r.Control, r.VS, r.VR, r.Response = s.modulo(), rejected.rejectedControl(), s.vs, s.vr, false
 	info := r.Encode()
 	s.logf(fmt.Sprintf("FRMR to client %#x: %s", s.client, r))
 	s.setLinked(false)
-	f := s.reply(ctl(KindFRMR, true), info, false)
+	f := s.reply(cU(KindFRMR, true), info, false)
 	if c.PF {
 		return s.send(w, f)
 	}

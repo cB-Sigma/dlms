@@ -87,11 +87,30 @@ func TestCatalogueShortNames(t *testing.T) {
 	if m, ok := clock.Method(6); !ok || m.Name != "shiftTime" {
 		t.Errorf("clock method 6 = %+v", m)
 	}
-	want2 := map[uint16]uint8{7: 1, 12: 4, 15: 3, 19: 1, 23: 1, 64: 1, 72: 1, 28: 2, 29: 2}
+	want2 := map[uint16]uint8{7: 1, 12: 4, 15: 3, 19: 1, 23: 1, 64: 1, 72: 1, 28: 2, 29: 2, 40: 0, 47: 1, 70: 0}
 	for id, v := range want2 {
 		if c, _ := Lookup(id); c.Version != v {
 			t.Errorf("class %d version %d, want %d", id, c.Version, v)
 		}
+	}
+}
+
+// The versions of push setup (40) and GSM diagnostic (47) match their
+// attribute lists: push setup version 0 has attributes 1 to 7 (versions 1
+// and 2 have 10 and 13, as Gurux's GXDLMSPushSetup counts them), GSM
+// diagnostic 8 in every version.
+//
+// Covers: SIG-IPE-6466
+func TestCatalogueVersionsMatchAttributes(t *testing.T) {
+	for id, n := range map[uint16]int{40: 7, 47: 8} {
+		c, ok := Lookup(id)
+		if !ok || len(c.Attributes) != n {
+			t.Errorf("class %d: %d attributes, want %d", id, len(c.Attributes), n)
+		}
+	}
+	gsm, _ := Lookup(47)
+	if a, _ := gsm.Attribute(6); a.Name != "cellInfo" {
+		t.Errorf("GSM diagnostic attribute 6 is %q", a.Name)
 	}
 }
 

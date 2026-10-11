@@ -88,10 +88,15 @@ type wire struct {
 	w      io.Writer
 	frames []Frame
 	drop   func(n int, f Frame) bool
+	mod    int // numbering to decode with (0: modulo 8)
 }
 
 func (w *wire) Write(b []byte) (int, error) {
-	f, err := Decode(b)
+	mod := w.mod
+	if mod == 0 {
+		mod = Modulo8
+	}
+	f, err := DecodeModulo(b, mod)
 	w.mu.Lock()
 	n := len(w.frames)
 	if err == nil {

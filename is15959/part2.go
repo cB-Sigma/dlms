@@ -351,6 +351,9 @@ func p2Spec(id, category, title string, phases int, instant, block, daily, billi
 	s.ESW = append(append([]ESWBit(nil), esw...), p2ESWCommon...)
 	s.Push = p2Push(instant)
 	s.Methods = p2Methods()
+	sdo, sdm := specialDays(p2Settings, p2Exec)
+	s.Objects = append(s.Objects, sdo...)
+	s.Methods = append(s.Methods, sdm...)
 	s.dedupe()
 	return s
 }
@@ -362,6 +365,32 @@ func init() {
 	register(p2Spec("part2-3ph", "D2", "IS 15959 Part 2 three-phase whole-current smart meter (D2)", 3,
 		p2D2Instant, p2D2Block, p2D2Daily, p2D2Billing, p2D2Events(), p2D2Capture, p2ESW3, "7: three-phase whole-current smart meter",
 		"Part 2 clause 17, tables A14 to A27 as amended"))
+}
+
+// SpecialDaysTable is the special days table (class 11), which names the
+// day profile of the activity calendar to use on given dates instead of
+// the week's.
+const SpecialDaysTable = "0.0.11.0.0.255"
+
+// specialDaysRef says where the special days table comes from: the Part 2
+// and Part 3 tables do not list it and Part 1 clause 9.10 does not use it
+// (the tariff comes from the activity calendar, clause 9.9), so it is
+// offered for meters that carry one, with the activity calendar's rights
+// (our reading); the class is IEC 62056-6-2 class 11.
+const specialDaysRef = "not in the Part 2 or 3 tables, not used by Part 1 clause 9.10; offered with the activity calendar's rights (Part 1 clause 9.9; our reading); IEC 62056-6-2 class 11"
+
+// specialDays is the special days table's entries attribute (2) and its
+// commands: the whole table as a write, and insert (method 1, one entry)
+// and delete (method 2, by index), under settings rights for the entries
+// and execute rights for the methods, as the activity calendar has.
+func specialDays(settings, exec Rights) ([]Object, []Method) {
+	return []Object{
+			{OBIS: SpecialDaysTable, Class: ClassSpecialDays, Attr: 2, Type: "array", Group: GroupProgrammable, Access: settings, Ref: specialDaysRef},
+		}, []Method{
+			{Name: "special-days", OBIS: SpecialDaysTable, Class: ClassSpecialDays, Attr: 2, Type: "array", Access: settings, Ref: specialDaysRef},
+			{Name: "special-day-insert", OBIS: SpecialDaysTable, Class: ClassSpecialDays, Method: 1, Type: "structure", Access: exec, Ref: specialDaysRef},
+			{Name: "special-day-delete", OBIS: SpecialDaysTable, Class: ClassSpecialDays, Method: 2, Type: "long-unsigned", Access: exec, Ref: specialDaysRef},
+		}
 }
 
 // pushSetupObjects lists a push setup's settable attributes (figure 2:

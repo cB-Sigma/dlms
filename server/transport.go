@@ -101,6 +101,39 @@ func gbtBlock(last bool, num, ack uint16, data []byte) []byte {
 	return append(out, octetString(data)...)
 }
 
+// Session is one client's session with the server for callers that carry
+// APDUs themselves: a data concentrator's logical devices, a transport this
+// package does not have. It is safe for use by one goroutine at a time.
+type Session struct {
+	mu sync.Mutex
+	ss *session
+}
+
+// NewSession starts a session for a client address; the client then sends
+// its AARQ through Handle. It fails when the server's settings cannot be
+// served.
+func (s *Server) NewSession(client uint16) (*Session, error) {
+	if err := s.check(); err != nil {
+		return nil, err
+	}
+	return &Session{ss: newSession(s, client)}, nil
+}
+
+// Handle answers one APDU (nil: nothing is answered), with block transfer
+// and general block transfer as negotiated.
+func (x *Session) Handle(apdu []byte) []byte {
+	x.mu.Lock()
+	defer x.mu.Unlock()
+	return x.ss.answer(append([]byte(nil), apdu...))
+}
+
+// Associated says whether the client's association is open.
+func (x *Session) Associated() bool {
+	x.mu.Lock()
+	defer x.mu.Unlock()
+	return x.ss.associated
+}
+
 // ServeWrapper answers the wrapper on one connection (TCP, or a stream
 // someone else opened) until it ends; each client wPort has its own
 // session. WPDUs for another server wPort are dropped; the all-station

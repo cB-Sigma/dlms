@@ -160,6 +160,40 @@ and no table of text.
   setup (listed as version 0) and GSM diagnostic (version 1) are flagged
   in their doc comments for a check against the standard.
 
+## Added in v0.3.0
+
+- The server side of general ciphering, signing, third-party layers and
+  compression (`cosem/responder.go`, `server/session.go`) reuses the
+  client's own key derivation, key-info, signing and V.44 code from the
+  meter's side; it follows IEC 62056-5-3:2023 5.3.6, 5.5 and 5.7 and
+  annex J, as the client does. dlms-sim's meter, written separately,
+  answers the same requests, so the two readings check each other.
+- `concentrator` (written in October 2026 from IEC 62056-5-3:2023 annex
+  C) replaces the data concentrator dlms-sim had; dlms-sim's DCU now runs
+  on it.
+- `iec6205621/meter`, `is15959/meter` (with its value generation) and
+  `lpwan/enddevice` are the IEC 62056-21 meter, the IS 15959 meter
+  builder and the LoRaWAN and NB-IoT meter ends that dlms-sim held since
+  v0.1.0, moved into this module with the same authorship (written for
+  SigmaM2M from the standards in the table above); dlms-sim now uses
+  them. The made-up readings of the IS 15959 meter are our own figures
+  for a household meter, not taken from any document.
+- The two `classes` flags of v0.2.0 were checked against Gurux's public
+  sources (Python, Java, .Net and C, read for facts only, nothing
+  copied): the grouping of disconnect control modes in their control
+  mode enumerations, and the attribute counts per version of push setup
+  and GSM diagnostic. The mode transitions were changed as the CHANGELOG
+  says; the class versions stood. Gurux gives disconnect control version
+  1 where we give 0; that remains to check against IEC 62056-6-2.
+- HDLC modulo 128 follows ISO/IEC 13239:2002 (extended control field,
+  SNRME, the modulo 128 FRMR layout). Key rotation (`cosem/keyrotation.go`)
+  uses the security setup methods already here and RFC 3394. The special
+  days table entry of `is15959` is our reading; no IS 15959 table lists
+  it.
+- The interop tests run Gurux's Python client (gurux-dlms 1.0.203,
+  fetched at test time) through the concentrator and against an IS 15959
+  meter; no Gurux code is kept.
+
 ## Words in errors and events
 
 Some error texts name the settings SigmaM2M spells them with
