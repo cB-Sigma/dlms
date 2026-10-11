@@ -51,6 +51,9 @@ type AssociationConfig struct {
 	Use    string
 	// Name names the meter and Where its address in errors.
 	Name, Where string
+	// Conformance, when not 0, is the conformance block proposed instead
+	// of the default (Conformance* bits).
+	Conformance uint32
 }
 
 // Association is an open application association: gosem's client over
@@ -61,6 +64,51 @@ type Association struct {
 	Raw    *RawSetTransport
 	// Link is the supporting layers under the secure transport.
 	Link gdlms.Transport
+
+	timeout time.Duration
+	invoke  uint32 // the last ACCESS invoke ID
+	// shortNames: the association uses short name referencing (sn.go);
+	// names maps logical names to base names once the object list is read.
+	shortNames bool
+	names      map[string]snObject
+	writes     *atomic.Int64
+}
+
+// Exchange sends one APDU on the association and returns the meter's
+// answer, with the association's protection applied both ways (the
+// services gosem does not offer: ACCESS, short name referencing).
+func (a *Association) Exchange(apdu []byte) ([]byte, error) {
+	to := a.timeout
+	if to <= 0 {
+		to = exchangeTimeout
+	}
+	if a.writes != nil && isWrite(apdu) {
+		a.writes.Add(1)
+	}
+	return a.Secure.Exchange(apdu, to)
+}
+
+// isWrite reports a request that changes the meter: an ACCESS request with
+// a set or action, or a short name write.
+func isWrite(apdu []byte) bool {
+	if len(apdu) == 0 {
+		return false
+	}
+	switch apdu[0] {
+	case 0x06, 0x16:
+		return true
+	case TagAccessRequest:
+		req, err := DecodeAccessRequest(apdu)
+		if err != nil {
+			return true
+		}
+		for _, it := range req.Items {
+			if it.Kind != AccessGet && it.Kind != AccessGetWithSelection {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // Associate opens an association. On failure the returned association,
@@ -87,6 +135,15 @@ func Associate(cfg AssociationConfig) (*Association, error) {
 	if err != nil {
 		cfg.Transport.Close()
 		return nil, err
+	}
+	// The services we propose (the conformance block): gosem's set plus
+	// ACCESS for logical names; the short name services for short names.
+	set.ConformanceBlock |= int(ConformanceAccess)
+	if h.Security.ShortNames {
+		set.ConformanceBlock = int(snConformance)
+	}
+	if cfg.Conformance != 0 {
+		set.ConformanceBlock = int(cfg.Conformance)
 	}
 	var ctos []byte
 	switch {
@@ -120,7 +177,8 @@ func Associate(cfg AssociationConfig) (*Association, error) {
 		st.Close()
 		return nil, fmt.Errorf("connecting to %s: %w", cfg.Where, err)
 	}
-	a := &Association{Client: c, Secure: st, Raw: raw, Link: cfg.Transport}
+	a := &Association{Client: c, Secure: st, Raw: raw, Link: cfg.Transport, timeout: to, writes: cfg.Writes,
+		shortNames: h.Security.ShortNames}
 	if err := c.Associate(); err != nil {
 		_ = c.Disconnect()
 		st.Close()
@@ -130,7 +188,11 @@ func Associate(cfg AssociationConfig) (*Association, error) {
 		return a, fmt.Errorf("association with meter %s refused: %w", cfg.Name, err)
 	}
 	if cfg.Mechanism >= MechHLS {
-		if err := completeHLS(c, st, h, ctos); err != nil {
+		complete := func() error { return completeHLS(c, st, h, ctos) }
+		if a.shortNames {
+			complete = func() error { return completeHLSSN(a, h, ctos) }
+		}
+		if err := complete(); err != nil {
 			_ = c.Disconnect()
 			st.Close()
 			return a, fmt.Errorf("high-level security with meter %s failed: %w", cfg.Name, err)

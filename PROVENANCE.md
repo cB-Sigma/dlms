@@ -34,6 +34,9 @@ comments cite clause, table and figure numbers in our own words.
 
 ## Standards followed
 
+(`server` and `classes`, added in v0.2.0: IEC 62056-5-3:2023 and IEC
+62056-6-2:2023, as `cosem`; see "Added in v0.2.0".)
+
 All are licensed or (for the BIS standards) free copies read in place.
 None is kept in the repository or redistributed.
 
@@ -126,6 +129,37 @@ and no table of text.
 - The tests carry `// Covers: SIG-...` comments: SigmaM2M requirement IDs
   that its compliance report collects. They mean nothing else here.
 
+## Added in v0.2.0
+
+- `server` (the meter side), `classes` (the interface classes as data and
+  Go types), the ACCESS service (`cosem/access.go`) and short name
+  referencing (`cosem/sn.go`) were written in October 2026 from IEC
+  62056-5-3:2023 (ACCESS 7.3.8, short names 7.4, the association and
+  block transfer clauses, general block transfer) and IEC 62056-6-2:2023
+  (class, attribute and method numbers, short name offsets). The server's
+  APDU protection and HLS answers are cosem's own functions; its session
+  logic follows the same reading of the standard as dlms-sim's meter,
+  which was written separately.
+- Gurux's sources (GPL-2.0) were read, not copied, at the pinned commits
+  named in `interop/`, for interoperability facts only: the octet layout
+  of an ACCESS response (Gurux leaves out the optional copy of the
+  request's specifications and writes an empty date-time), that its short
+  name server takes reply_to_HLS_authentication as a write and answers
+  with a read response, that it acknowledges short name data blocks with
+  the number of the block received, that its clients protect HLS passes 3
+  and 4 with the global key when a dedicated key was agreed, and its table
+  of the short name offsets of method 1 per class (numbers, which we
+  checked against the class descriptions). No Gurux code, comment or
+  identifier is in this module; the interop tests fetch Gurux at test
+  time and keep nothing.
+- The `classes` catalogue holds class identifiers, versions, attribute
+  and method numbers and short name offsets as facts; the names are our
+  own camel-case or plain words. Classes whose attribute lists we were not
+  sure of were left out (Account 111, Charge 113, M-Bus slave port setup
+  25); the disconnect control state transitions per control mode, push
+  setup (listed as version 0) and GSM diagnostic (version 1) are flagged
+  in their doc comments for a check against the standard.
+
 ## Words in errors and events
 
 Some error texts name the settings SigmaM2M spells them with
@@ -139,6 +173,7 @@ messages did not change; an application may map them.
 
 - A line-by-line comparison with Gurux or other DLMS stacks. None was
   needed on the evidence above (no porting record, no shared identifiers
-  or comments), and the Gurux sources are not in this workspace.
+  or comments), and the Gurux sources are not kept in this workspace
+  (v0.2.0 read some of them at test time, see above).
 - The two flags above (OBIS labels, IS 15959 event names) need a reviewer
   with the standards.

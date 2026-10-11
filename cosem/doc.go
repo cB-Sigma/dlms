@@ -1,7 +1,9 @@
 // Copyright 2026 Abhinav Gautam
 // SPDX-License-Identifier: Apache-2.0
 
-// Package cosem is a DLMS/COSEM client (logical name referencing): the
+// Package cosem is a DLMS/COSEM client (logical name referencing, and
+// short name referencing with Referencing "sn", sn.go; the ACCESS service,
+// access.go): the
 // application association (AARQ, AARE, RLRQ, RLRE) with low-level and
 // high-level security authentication (mechanisms 1 to 7), the security
 // suites 0 to 2 with service-specific, general-glo, general-ded and general

@@ -59,6 +59,8 @@ type ClientConfig struct {
 	Use    string
 	// Name and Where name the meter and its address in errors.
 	Name, Where string
+	// Conformance is as in AssociationConfig.
+	Conformance uint32
 }
 
 // Client is a client of one meter. It is not safe for concurrent use:
@@ -118,7 +120,7 @@ func (c *Client) Connect() error {
 	}
 	a, err := Associate(AssociationConfig{Transport: tr, Mechanism: h.Mechanism, Password: cfg.Password, HLS: h,
 		FirstIC: ic, ExpectSystemTitle: expect, Timeout: cfg.Timeout, Writes: cfg.Writes, Alive: cfg.Alive,
-		Check: cfg.Check, Policy: cfg.Policy, Use: cfg.Use, Name: cfg.Name, Where: cfg.Where})
+		Check: cfg.Check, Policy: cfg.Policy, Use: cfg.Use, Name: cfg.Name, Where: cfg.Where, Conformance: cfg.Conformance})
 	if a != nil {
 		c.st = a.Secure
 	}
@@ -198,6 +200,9 @@ func (c *Client) Get(class uint16, obis string, attr int8) (axdr.DlmsData, error
 	var d axdr.DlmsData
 	if c.a == nil {
 		return d, errNoAssociation
+	}
+	if c.a.shortNames {
+		return c.a.GetSN(class, obis, attr)
 	}
 	err := c.a.Client.GetRequest(gdlms.CreateAttributeDescriptor(class, obis, attr), &d)
 	return d, err

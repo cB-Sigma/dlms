@@ -14,7 +14,7 @@ require (
 
 require (
 	github.com/cB-Sigma/iotsec v0.1.0 // indirect
-	github.com/cB-Sigma/schc v0.1.1 // indirect
+	github.com/cB-Sigma/schc v0.2.0 // indirect
 	github.com/goburrow/serial v0.1.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

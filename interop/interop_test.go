@@ -49,10 +49,11 @@ const (
 )
 
 type server struct {
-	name           string
-	owned          bool
-	wrapper, hdlcA string
-	st, ak, bk     []byte
+	name              string
+	owned             bool
+	wrapper, hdlcA    string
+	snWrapper, snHDLC string
+	st, ak, bk        []byte
 }
 
 var (
@@ -65,6 +66,9 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	if peer != nil && peer.owned {
 		_ = exec.Command("docker", "container", "rm", "-f", peer.name).Run()
+	}
+	for _, name := range cleanup {
+		_ = exec.Command("docker", "container", "rm", "-f", name).Run()
 	}
 	os.Exit(code)
 }
@@ -95,7 +99,7 @@ func startPeer() (*server, error) {
 		}
 		s.name = fmt.Sprintf("sigma-dlms-gurux-%d", os.Getpid())
 		out, err := exec.Command("docker", "run", "-d", "-i", "--name", s.name,
-			"-p", "127.0.0.1::4061", "-p", "127.0.0.1::4063",
+			"-p", "127.0.0.1::4060", "-p", "127.0.0.1::4061", "-p", "127.0.0.1::4062", "-p", "127.0.0.1::4063",
 			"-v", td+":/sigma:ro", image, "sh", "/sigma/gurux-server.sh", guruxCommit).CombinedOutput()
 		if err != nil {
 			return nil, fmt.Errorf("docker run: %v: %s", err, out)
@@ -138,6 +142,12 @@ func startPeer() (*server, error) {
 		return nil, err
 	}
 	if s.hdlcA, err = port("4061"); err != nil {
+		return nil, err
+	}
+	if s.snHDLC, err = port("4060"); err != nil {
+		return nil, err
+	}
+	if s.snWrapper, err = port("4062"); err != nil {
 		return nil, err
 	}
 	return s, nil

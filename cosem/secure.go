@@ -252,8 +252,10 @@ func concat(parts ...[]byte) []byte {
 
 // APDU tags: plain request/response and their glo- and ded- forms.
 var (
-	gloOf = map[byte]byte{0xC0: 0xC8, 0xC1: 0xC9, 0xC3: 0xCB, 0x01: 0x21}
-	dedOf = map[byte]byte{0xC0: 0xD0, 0xC1: 0xD1, 0xC3: 0xD3}
+	// Short name services (read, write, unconfirmed write) have glo- and
+	// ded- forms too (0x20 and 0x40 above the plain tag).
+	gloOf = map[byte]byte{0xC0: 0xC8, 0xC1: 0xC9, 0xC3: 0xCB, 0x01: 0x21, 0x05: 0x25, 0x06: 0x26, 0x16: 0x36}
+	dedOf = map[byte]byte{0xC0: 0xD0, 0xC1: 0xD1, 0xC3: 0xD3, 0x05: 0x45, 0x06: 0x46, 0x16: 0x56}
 	// plainOf maps a protected tag the meter sends to its plain tag, and
 	// whether it is a ded- APDU.
 	plainOf = map[byte]struct {
@@ -263,6 +265,7 @@ var (
 		0xCC: {0xC4, false}, 0xCD: {0xC5, false}, 0xCF: {0xC7, false}, 0xCA: {0xC2, false},
 		0xD4: {0xC4, true}, 0xD5: {0xC5, true}, 0xD7: {0xC7, true}, 0xD2: {0xC2, true},
 		0x28: {0x08, false}, 0x2E: {0x0E, false},
+		0x2C: {0x0C, false}, 0x2D: {0x0D, false}, 0x4C: {0x0C, true}, 0x4D: {0x0D, true},
 	}
 )
 
@@ -360,7 +363,12 @@ type Security struct {
 	// whenever our system title is sent (protected APDUs or mechanism 5
 	// and above) and without it otherwise; ContextLN and
 	// ContextLNCiphering name one or the other whatever is sent.
+	// ContextSN and ContextSNCiphering name short name referencing.
 	Context byte
+	// ShortNames makes the association use short name referencing (sn.go):
+	// with Context automatic, the short name context with or without
+	// ciphering as for logical names.
+	ShortNames bool
 }
 
 // Application contexts the AARQ can propose (the last arc of the
@@ -442,6 +450,50 @@ type SecureTransport struct {
 	initReq         []byte
 	releaseCiphered bool
 	releaseVerified bool
+	// waiter, when set, takes the next incoming APDU instead of gosem
+	// (Exchange).
+	waiter chan []byte
+	// establishing is set during HLS passes 3 and 4 (global key only).
+	establishing bool
+}
+
+// setEstablishing marks HLS passes 3 and 4 under way.
+func (t *SecureTransport) setEstablishing(on bool) {
+	t.mu.Lock()
+	t.establishing = on
+	t.mu.Unlock()
+}
+
+// Exchange sends apdu, protected as configured, and returns the meter's
+// next APDU, its protection removed, without gosem seeing either. Callers
+// run one exchange at a time and none while gosem has a request out.
+func (t *SecureTransport) Exchange(apdu []byte, timeout time.Duration) ([]byte, error) {
+	w := make(chan []byte, 1)
+	t.mu.Lock()
+	t.waiter, t.failure = w, nil
+	t.mu.Unlock()
+	clear := func() {
+		t.mu.Lock()
+		if t.waiter == w {
+			t.waiter = nil
+		}
+		t.mu.Unlock()
+	}
+	if err := t.Send(apdu); err != nil {
+		clear()
+		return nil, err
+	}
+	select {
+	case b := <-w:
+		_, b = splitLLC(b)
+		if f := t.LastFailure(); f != nil {
+			return nil, f
+		}
+		return b, nil
+	case <-time.After(timeout):
+		clear()
+		return nil, fmt.Errorf("no answer from the meter within %v", timeout)
+	}
 }
 
 func newSecureTransport(tr gdlms.Transport, sec Security, firstIC uint32) *SecureTransport {
@@ -491,7 +543,7 @@ func (t *SecureTransport) outgoing(apdu []byte) ([]byte, error) {
 	case 0x62:
 		return t.rlrq(apdu)
 	}
-	if _, request := gloOf[apdu[0]]; !request {
+	if _, request := gloOf[apdu[0]]; !request && apdu[0] != TagAccessRequest {
 		return apdu, nil
 	}
 	out := apdu
@@ -522,7 +574,15 @@ func (t *SecureTransport) cipher(apdu []byte) ([]byte, error) {
 		apdu, bit = sec.compressRequest(apdu)
 		sec.Policy |= bit
 	}
-	switch sec.Ciphering {
+	// HLS passes 3 and 4 belong to establishing the association: they are
+	// protected with the global key even when a dedicated key was agreed
+	// (the dedicated key serves the established association).
+	ded := t.dedKey != nil && !t.establishing
+	ciphering := sec.Ciphering
+	if ciphering == CipherGeneralDed && !ded {
+		ciphering = CipherGeneralGlo
+	}
+	switch ciphering {
 	case CipherGeneralGlo:
 		p, err := Protect(sec.Suite, sec.Policy, sec.Key, sec.AuthKey, sec.SystemTitle, t.takeIC(), apdu)
 		if err != nil {
@@ -545,7 +605,24 @@ func (t *SecureTransport) cipher(apdu []byte) ([]byte, error) {
 	if apdu[0] == TagGeneralSigning {
 		return nil, errors.New("service-specific ciphering cannot carry a general-signing APDU; use ciphering general, general-glo or general-ded")
 	}
-	if t.dedKey != nil {
+	if apdu[0] == TagAccessRequest {
+		// ACCESS has no service-specific form: general-ded with a
+		// dedicated key, else general-glo.
+		if ded {
+			t.dedIC++
+			p, err := Protect(sec.Suite, sec.Policy, t.dedKey, sec.AuthKey, sec.SystemTitle, t.dedIC, apdu)
+			if err != nil {
+				return nil, err
+			}
+			return encodeGeneralGloDed(TagGeneralDed, sec.SystemTitle, p), nil
+		}
+		p, err := Protect(sec.Suite, sec.Policy, sec.Key, sec.AuthKey, sec.SystemTitle, t.takeIC(), apdu)
+		if err != nil {
+			return nil, err
+		}
+		return encodeGeneralGloDed(TagGeneralGlo, sec.SystemTitle, p), nil
+	}
+	if ded {
 		if tag, ok := dedOf[apdu[0]]; ok {
 			t.dedIC++
 			p, err := Protect(sec.Suite, sec.Policy, t.dedKey, sec.AuthKey, sec.SystemTitle, t.dedIC, apdu)
@@ -589,7 +666,7 @@ func (t *SecureTransport) SendBroadcastIC(apdu []byte, ic uint32) error {
 		return errors.New("broadcast requests need protected APDUs and the global broadcast key (broadcastKey)")
 	}
 	tag, ok := gloOf[apdu[0]]
-	if !ok || apdu[0] == 0x01 || len(apdu) < 3 || apdu[2]&0x40 != 0 {
+	if !ok || (apdu[0] != 0xC0 && apdu[0] != 0xC1 && apdu[0] != 0xC3) || len(apdu) < 3 || apdu[2]&0x40 != 0 {
 		t.mu.Unlock()
 		return errors.New("only unconfirmed get, set or action requests can be broadcast")
 	}
@@ -780,9 +857,17 @@ func (t *SecureTransport) aarq(apdu []byte) ([]byte, error) {
 	t.lastRecvIC = map[bool]uint32{}
 	t.dedKey, t.dedIC = nil, 0
 	t.initReq, t.releaseCiphered, t.releaseVerified = nil, false, false
-	if t.sec.Context != ContextAuto {
+	ctx := t.sec.Context
+	if ctx == ContextAuto && t.sec.ShortNames {
+		// gosem names logical names (1, or 3 with ciphering); short names
+		// are the next arc (2 or 4).
+		if arc := contextArc(apdu); arc == ContextLN || arc == ContextLNCiphering {
+			ctx = arc + 1
+		}
+	}
+	if ctx != ContextAuto {
 		var err error
-		if apdu, err = setContext(apdu, t.sec.Context); err != nil {
+		if apdu, err = setContext(apdu, ctx); err != nil {
 			return nil, err
 		}
 	}
@@ -864,6 +949,9 @@ func (t *SecureTransport) SetReception(dc gdlms.DataChannel) {
 				plain = []byte{0xD8, 0x01, 0x02}
 			}
 			out := t.out
+			if t.waiter != nil {
+				out, t.waiter = t.waiter, nil
+			}
 			t.mu.Unlock()
 			out <- concat(llc, plain)
 		}
@@ -871,7 +959,7 @@ func (t *SecureTransport) SetReception(dc gdlms.DataChannel) {
 }
 
 // responseTags are the plain services the meter answers with.
-var responseTags = map[byte]bool{0xC2: true, 0xC4: true, 0xC5: true, 0xC7: true}
+var responseTags = map[byte]bool{0xC2: true, 0xC4: true, 0xC5: true, 0xC7: true, 0x0C: true, 0x0D: true, TagAccessResponse: true}
 
 func (t *SecureTransport) incoming(apdu []byte) ([]byte, error) {
 	if len(apdu) == 0 {

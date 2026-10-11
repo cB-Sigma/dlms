@@ -14,6 +14,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
+
 	"github.com/cB-Sigma/dlms/cosem"
 )
 
@@ -29,8 +31,8 @@ import (
 //   - Aes1Test: AES key wrap (RFC 3394 data) used for key transfer:
 //     checked against WrapKey and UnwrapKey below.
 //   - AccessServiceTest: an ACCESS service request and response (IEC
-//     62056-5-3 access, tags 0xD9 and 0xDA). Our client does not
-//     implement the ACCESS service, so they are not decoded.
+//     62056-5-3 access, tags 0xD9 and 0xDA): checked against
+//     AccessRequest and DecodeAccessResponse below.
 const guruxAndroidCommit = "d3489a440b861a534e3226c3fbd1e85643f563b2"
 
 func fetchGurux(t *testing.T, path string) string {
@@ -123,6 +125,80 @@ func TestGuruxVectorsAESGCM(t *testing.T) {
 			}
 			t.Logf("%s: %X", tc.name, want)
 		})
+	}
+}
+
+// AccessServiceTest builds an ACCESS request of two gets (data
+// 0.0.96.1.0.255 value, clock time) and two sets (activity calendar
+// 0.0.13.0.0.255 attributes 7 and 8, with the values its test gives),
+// unconfirmed with invoke ID 1, and parses an ACCESS response. Our encoder
+// must give the same octets, our decoder must read both back, and the
+// response must decode to two octet strings, two null-data and four
+// successes.
+func TestGuruxVectorsAccess(t *testing.T) {
+	src := fetchGurux(t, "Java/DLMS/src/test/java/gurux/dlms/AccessServiceTest.java")
+	req := method(t, src, "accessRequestTest")
+	exp := regexp.MustCompile(`String expected =\s*"([0-9A-F]+)"`).FindStringSubmatch(req)
+	vals := regexp.MustCompile(`hexToBytes\(\s*"([0-9A-F]+)"\)`).FindAllStringSubmatch(req, -1)
+	if exp == nil || len(vals) != 2 {
+		t.Fatalf("the Gurux request test is not in the expected form:\n%s", req)
+	}
+	data := func(s string) *axdr.DlmsData {
+		b := unhex(t, s)
+		d, err := axdr.NewDataDecoder(&b).Decode(&b)
+		if err != nil || len(b) != 0 {
+			t.Fatalf("value %s: %v (%d octets left)", s, err, len(b))
+		}
+		return &d
+	}
+	items := []cosem.AccessItem{
+		{Kind: cosem.AccessGet, Class: 1, OBIS: "0.0.96.1.0.255", ID: 2},
+		{Kind: cosem.AccessGet, Class: 8, OBIS: "0.0.1.0.0.255", ID: 2},
+		{Kind: cosem.AccessSet, Class: 20, OBIS: "0.0.13.0.0.255", ID: 7, Data: data(vals[0][1])},
+		{Kind: cosem.AccessSet, Class: 20, OBIS: "0.0.13.0.0.255", ID: 8, Data: data(vals[1][1])},
+	}
+	got, err := (&cosem.AccessRequest{InvokeID: 1, Items: items}).Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if hex.EncodeToString(got) != strings.ToLower(exp[1]) {
+		t.Fatalf("access request:\n ours  %X\n Gurux %s", got, exp[1])
+	}
+	back, err := cosem.DecodeAccessRequest(unhex(t, exp[1]))
+	if err != nil || back.InvokeID != 1 || len(back.Items) != 4 || back.Items[3].Data == nil {
+		t.Fatalf("decoding Gurux's request: %+v %v", back, err)
+	}
+	again, _ := back.Encode()
+	if hex.EncodeToString(again) != strings.ToLower(exp[1]) {
+		t.Errorf("request decoded and encoded again: %X", again)
+	}
+
+	resp := method(t, src, "accessResponseTest")
+	rexp := regexp.MustCompile(`hexToBytes\(\s*"([0-9A-F]+)"\)`).FindStringSubmatch(resp)
+	if rexp == nil {
+		t.Fatalf("the Gurux response test is not in the expected form:\n%s", resp)
+	}
+	r, err := cosem.DecodeAccessResponse(unhex(t, rexp[1]))
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantKinds := []cosem.AccessKind{cosem.AccessGet, cosem.AccessGet, cosem.AccessSet, cosem.AccessSet}
+	if len(r.Results) != 4 {
+		t.Fatalf("response results %+v", r.Results)
+	}
+	for i, res := range r.Results {
+		if res.Kind != wantKinds[i] || res.Result != 0 {
+			t.Errorf("result %d: %v %v", i, res.Kind, res)
+		}
+	}
+	if r.Results[0].Data.Tag != axdr.TagOctetString || r.Results[1].Data.Tag != axdr.TagOctetString ||
+		r.Results[2].Data.Tag != axdr.TagNull || r.Results[3].Data.Tag != axdr.TagNull {
+		t.Errorf("response data %+v", r.Results)
+	}
+	t.Logf("serial %v, clock %v", r.Results[0].Data.Value, r.Results[1].Data.Value)
+	out, err := r.Encode()
+	if err != nil || hex.EncodeToString(out) != strings.ToLower(rexp[1]) {
+		t.Errorf("response decoded and encoded again: %X %v", out, err)
 	}
 }
 

@@ -58,9 +58,15 @@ func TestApplicationContextSelectable(t *testing.T) {
 	for _, tc := range []struct {
 		setting string
 		want    byte
-	}{{"", ContextLNCiphering}, {"auto", ContextLNCiphering}, {"ln", ContextLN}, {"ln-ciphering", ContextLNCiphering}} {
+	}{{"", ContextLNCiphering}, {"auto", ContextLNCiphering}, {"ln", ContextLN}, {"ln-ciphering", ContextLNCiphering},
+		{"sn", ContextSN}, {"sn-ciphering", ContextSNCiphering}, {"referencing sn", ContextSNCiphering}} {
 		cfg := SecurityConfig{Name: "M", Authentication: "hls-gmac", Security: "none", ApplicationContext: tc.setting,
 			BlockCipherKey: "000102030405060708090A0B0C0D0E0F", AuthenticationKey: "D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"}
+		if tc.setting == "referencing sn" {
+			// Short names with the automatic context: the next arc of
+			// gosem's (3, ciphering), so 4.
+			cfg.ApplicationContext, cfg.Referencing = "", "sn"
+		}
 		h, _, err := cfg.Build()
 		if err != nil {
 			t.Fatalf("%q: %v", tc.setting, err)
@@ -81,7 +87,10 @@ func TestApplicationContextSelectable(t *testing.T) {
 	for _, bad := range []SecurityConfig{
 		{Name: "M", Authentication: "hls-gmac", Security: "authenticated", ApplicationContext: "ln",
 			BlockCipherKey: "000102030405060708090A0B0C0D0E0F", AuthenticationKey: "D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"},
-		{Name: "M", Authentication: "low", Password: "x", ApplicationContext: "sn"},
+		{Name: "M", Authentication: "low", Password: "x", ApplicationContext: "short"},
+		{Name: "M", Authentication: "low", Password: "x", ApplicationContext: "ln", Referencing: "sn"},
+		{Name: "M", Authentication: "hls-gmac", Security: "authenticated", ApplicationContext: "sn",
+			BlockCipherKey: "000102030405060708090A0B0C0D0E0F", AuthenticationKey: "D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"},
 	} {
 		if _, _, err := bad.Build(); err == nil {
 			t.Errorf("%+v accepted", bad)

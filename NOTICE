@@ -1,5 +1,6 @@
-dlms (a DLMS/COSEM client and its lower layers, DLMS over NB-IoT and LoRaWAN,
-IEC 62056-21, OBIS and the IS 15959 catalogue, in Go)
+dlms (a DLMS/COSEM client and server, the COSEM interface classes, their
+lower layers, DLMS over NB-IoT and LoRaWAN, IEC 62056-21, OBIS and the IS
+15959 catalogue, in Go)
 Copyright 2026 Abhinav Gautam
 
 This module is licensed under the Apache License, Version 2.0 (LICENSE).
@@ -35,7 +36,7 @@ Dependencies
 
 - gitlab.com/circutor-library/gosem v1.3.4: MIT License, "Copyright for
   portions of project gosem are held by nyot, 2022. All other copyright
-  are held by Circutor, 2022." The packages cosem, hdlc, phy and wrapper
+  are held by Circutor, 2022." The packages cosem, classes, server, hdlc, phy and wrapper
   use its A-XDR types and APDU encoders (pkg/axdr, pkg/dlms). No gosem
   code is copied into this module.
 - gopkg.in/yaml.v3 v3.0.1 (obis reads obis.yaml): MIT and Apache-2.0
@@ -62,6 +63,12 @@ example. cosem's tests also use the RFC 3394 key wrap examples and NIST
 CAVS 11.0 ECDSA SigVer vectors (public domain, as shipped in the Go
 source tree). Keys in examples and tests are test values, not keys of
 any meter.
+
+The test-only module interop/ (not part of the published module) fetches
+Gurux's GPL-2.0 sources and unit-test vectors (Gurux.DLMS.Java,
+Gurux.DLMS.Android) and the gurux-dlms Python package when its tests run,
+to check this module against them; none of them is kept or redistributed.
+Its testdata/gurux_client.py is our own script that calls that package.
 
 Trademarks
 ----------

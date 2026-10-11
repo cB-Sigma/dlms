@@ -30,7 +30,8 @@ import (
 //	MeterKAKey         the meter's key agreement public key or certificate
 //	ThirdParty         requests protected for a third party inside our layer
 //	Compression        V.44 (suite 1 or 2, general ciphering)
-//	ApplicationContext auto (default), ln or ln-ciphering: the context the AARQ proposes
+//	ApplicationContext auto (default), ln, ln-ciphering, sn or sn-ciphering: the context the AARQ proposes
+//	Referencing        ln (default) or sn: logical or short name referencing
 //
 // Name names the meter in errors.
 type SecurityConfig struct {
@@ -59,6 +60,12 @@ type SecurityConfig struct {
 	// "ln" (logical name referencing without ciphering: HLS-GMAC with
 	// unprotected APDUs, as many meters and Gurux expect) or "ln-ciphering".
 	ApplicationContext string
+	// Referencing is "ln" (logical names, the default) or "sn" (short
+	// names: Client.Get reads through base names from the association SN
+	// object list); "sn" with ApplicationContext auto picks the short name
+	// context with or without ciphering as auto does for logical names.
+	// ApplicationContext "sn" and "sn-ciphering" imply it.
+	Referencing string
 }
 
 // KeyWarning is an optional key that could not be used: the meter runs
@@ -152,8 +159,28 @@ func (c *SecurityConfig) Build() (*HLS, []KeyWarning, error) {
 		h.Security.Context = ContextLN
 	case "ln-ciphering":
 		h.Security.Context = ContextLNCiphering
+	case "sn":
+		if h.Security.Policy != 0 {
+			return nil, nil, fmt.Errorf("meter %s: applicationContext sn has no ciphering, so it needs security none (protected APDUs need sn-ciphering)", c.Name)
+		}
+		h.Security.Context, h.Security.ShortNames = ContextSN, true
+	case "sn-ciphering":
+		h.Security.Context, h.Security.ShortNames = ContextSNCiphering, true
 	default:
-		return nil, nil, fmt.Errorf("meter %s: applicationContext %q is not auto, ln or ln-ciphering", c.Name, c.ApplicationContext)
+		return nil, nil, fmt.Errorf("meter %s: applicationContext %q is not auto, ln, ln-ciphering, sn or sn-ciphering", c.Name, c.ApplicationContext)
+	}
+	switch strings.ToLower(c.Referencing) {
+	case "", "ln", "logical-name":
+		if c.Referencing != "" && h.Security.ShortNames {
+			return nil, nil, fmt.Errorf("meter %s: referencing %s contradicts applicationContext %s", c.Name, c.Referencing, c.ApplicationContext)
+		}
+	case "sn", "short-name":
+		if h.Security.Context == ContextLN || h.Security.Context == ContextLNCiphering {
+			return nil, nil, fmt.Errorf("meter %s: referencing %s contradicts applicationContext %s", c.Name, c.Referencing, c.ApplicationContext)
+		}
+		h.Security.ShortNames = true
+	default:
+		return nil, nil, fmt.Errorf("meter %s: referencing %q is not ln or sn", c.Name, c.Referencing)
 	}
 	warns, err := c.publicKeySettings(h)
 	if err != nil {

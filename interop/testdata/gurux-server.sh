@@ -14,7 +14,10 @@
 # context and the security setup object of its ciphered association
 # (0.0.43.0.8.255, suite 0, the server's global keys), so that it takes
 # authenticated and encrypted APDUs. Out of the box (as on the HDLC port,
-# 4061) it only takes the context without ciphering and plain APDUs.
+# 4061) it only takes the context without ciphering and plain APDUs. Its
+# HLS-SHA256 association (client 22) gets the ciphering context and the
+# example's security setup of security suite 1 (0.0.43.0.7.255, made for
+# its ECDSA association), so suite 1 ciphering is checked too.
 set -eu
 commit="$1"
 cd /tmp
@@ -41,7 +44,9 @@ kill "$first"
 wait "$first" || true
 for f in 4063settings.xml; do
 	sed -i -e '/<ClientSAP>21<\/ClientSAP>/,/<\/GXDLMSAssociationLogicalName>/ s#<ContextId>1</ContextId>#<ContextId>3</ContextId>#' \
-		-e '/<ClientSAP>21<\/ClientSAP>/,/<\/GXDLMSAssociationLogicalName>/ s#<Users>#<SecuritySetupReference>0.0.43.0.8.255</SecuritySetupReference><Users>#' "$f"
+		-e '/<ClientSAP>21<\/ClientSAP>/,/<\/GXDLMSAssociationLogicalName>/ s#<Users>#<SecuritySetupReference>0.0.43.0.8.255</SecuritySetupReference><Users>#' \
+		-e '/<ClientSAP>22<\/ClientSAP>/,/<\/GXDLMSAssociationLogicalName>/ s#<ContextId>1</ContextId>#<ContextId>3</ContextId>#' \
+		-e '/<ClientSAP>22<\/ClientSAP>/,/<\/GXDLMSAssociationLogicalName>/ s#<Users>#<SecuritySetupReference>0.0.43.0.7.255</SecuritySetupReference><Users>#' "$f"
 done
-echo "sigma: client 21 (HLS-GMAC) on the wrapper set to the ciphering context with security setup 0.0.43.0.8.255; HDLC keeps the defaults"
+echo "sigma: client 21 (HLS-GMAC) on the wrapper set to the ciphering context with security setup 0.0.43.0.8.255; client 22 (HLS-SHA256) to the ciphering context with security setup 0.0.43.0.7.255 (suite 1); HDLC keeps the defaults"
 exec java -jar "$jar" -p 4060 -t Info

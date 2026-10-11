@@ -106,6 +106,23 @@ type HLS struct {
 	MeterKey  *ecdsa.PublicKey  // the meter's (mechanism 7)
 }
 
+// Answer is f(challenge), the HLS pass 3 or 4 answer of the party whose
+// system title is systemTitle to the challenge of the party peerST, which
+// answers ownChallenge (the challenge this party issued); ic is the
+// invocation counter of a mechanism 5 answer. Either side uses it: a
+// client answering the meter's StoC, a server answering the client's
+// CtoS.
+func (h *HLS) Answer(systemTitle, peerST, challenge, ownChallenge []byte, ic uint32) ([]byte, error) {
+	return h.answer(systemTitle, peerST, challenge, ownChallenge, ic)
+}
+
+// Check verifies got, the peer's answer to our challenge ourChallenge
+// (the peer's own challenge was peerChallenge). For mechanism 7, MeterKey
+// is the peer's public key whichever side the peer is.
+func (h *HLS) Check(ourST, peerST, ourChallenge, peerChallenge, got []byte) error {
+	return h.check(ourST, peerST, ourChallenge, peerChallenge, got)
+}
+
 // answer computes f(challenge) as the party with systemTitle, towards
 // peerST, who issued ownChallenge.
 func (h *HLS) answer(systemTitle, peerST, challenge, ownChallenge []byte, ic uint32) ([]byte, error) {
@@ -231,6 +248,8 @@ func completeHLS(c gdlms.Client, t *SecureTransport, h *HLS, ctos []byte) error 
 		return err
 	}
 	_ = t.TakeAction()
+	t.setEstablishing(true)
+	defer t.setEstablishing(false)
 	mth := gdlms.CreateMethodDescriptor(15, "0.0.40.0.0.255", 1)
 	// gosem encodes octet strings from hex text.
 	if err := c.ActionRequest(mth, axdr.CreateAxdrOctetString(hex.EncodeToString(ans))); err != nil {
